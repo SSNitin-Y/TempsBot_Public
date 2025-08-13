@@ -1,4 +1,4 @@
-# Climbot — Climate Auto‑Journalist (Demo Code Snippet)
+# TempsBot — Is a Weather Bot integrated with AI ("Temps" means weather in French).
 
 Live app: [https://share.streamlit.io/… ](https://weatherai-rpmnd2vdjchnbzggsgbqij.streamlit.app/) <!-- paste your Streamlit URL -->
 
