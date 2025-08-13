@@ -11,7 +11,7 @@ import streamlit as st
 
 st.title("Climbot — Climate Auto‑Journalist (Demo)")
 st.info("This repo mirrors **UI code only**. Full backend is private.")
-st.link_button("Open the live app", "https://share.streamlit.io/...")  # put your URL
+st.link_button("Open the live app", "https://weatherai-rpmnd2vdjchnbzggsgbqij.streamlit.app/")  # put your URL
 
 import streamlit as st
 import matplotlib.pyplot as plt
