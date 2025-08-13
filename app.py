@@ -1,3 +1,18 @@
+# NOTE: This is a read-only mirror of the UI shell.
+# Internal modules (weather_api, outfit_forecast, etc.) live in a private repo.
+# All secrets are read from Streamlit Cloud (st.secrets).
+
+import streamlit as st
+# from weather_api import get_weather
+# from forecast_api import get_forecast
+# from outfit_forecast import generate_outfit_recommendations
+# from gpt_summarizer import generate_gpt_summary, generate_outfit_summary, generate_daily_outfit_summary
+# from sunscreen_advisor import get_sunscreen_recommendation
+
+st.title("Climbot — Climate Auto‑Journalist (Demo)")
+st.info("This repo mirrors **UI code only**. Full backend is private.")
+st.link_button("Open the live app", "https://share.streamlit.io/...")  # put your URL
+
 import streamlit as st
 import matplotlib.pyplot as plt
 from io import BytesIO
