@@ -32,7 +32,7 @@ It uses data from the **OpenWeather API** and **GPT-powered summaries** to:
 
 ## 🤝 Collaboration
 This project was built as a **joint collaboration** between:  
-- **[Nitin](https://www.linkedin.com/in/ssny15)**      - **[Ashraiy](https://www.linkedin.com/in/ashraiy-manohar)**  
+- **[Nitin](https://www.linkedin.com/in/ssny15)**        - **[Ashraiy](https://www.linkedin.com/in/ashraiy-manohar)**  
 
 We worked together on **feature brainstorming, code refinement, and deployment strategy** to create an easy-to-use weather-fashion assistant.
 
