@@ -2,7 +2,7 @@
 # Internal modules (weather_api, outfit_forecast, etc.) live in a private repo.
 # All secrets are read from Streamlit Cloud (st.secrets).
 
-import streamlit as st
+# import streamlit as st
 # from weather_api import get_weather
 # from forecast_api import get_forecast
 # from outfit_forecast import generate_outfit_recommendations
