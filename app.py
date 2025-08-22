@@ -561,7 +561,7 @@ footer_html = """
       font-size: 1em;
       line-height: 1.6;
       margin-top: 12px;
-      margin-left: 40px;   /* extra margin on sides */
+      margin-left: 50px;   /* extra margin on sides */
       margin-right: 40px;
       color: #00A37A;      /* TempsBot Green */
       font-weight: 600;
