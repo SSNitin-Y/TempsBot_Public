@@ -34,8 +34,28 @@ except Exception:
     REPORTLAB_OK = False
 
 from datetime import datetime
-from zoneinfo import ZoneInfo                              # ✨ NEW for timezone conversion
-from streamlit_js_eval import get_browser_timezone         # ✨ NEW to detect viewer TZ
+from zoneinfo import ZoneInfo                              # ✨ for timezone conversion
+
+# ✨ NEW: correct import for browser-side JS evaluation (replaces get_browser_timezone)
+try:
+    from streamlit_js_eval import streamlit_js_eval
+except Exception:
+    streamlit_js_eval = None
+
+def _get_viewer_timezone():
+    """
+    Returns an IANA timezone like 'America/New_York' by evaluating a small JS
+    expression in the browser. Can be None on first render; we fall back to UTC.
+    """
+    if streamlit_js_eval is None:
+        return None
+    try:
+        return streamlit_js_eval(
+            js_expressions="Intl.DateTimeFormat().resolvedOptions().timeZone",
+            key="__viewer_tz__"
+        )
+    except Exception:
+        return None
 
 # --- UI tweak: keep long select values inside the borders ---
 st.markdown("""
@@ -240,12 +260,10 @@ with st.expander("👋 What I do (tap to read)", expanded=False):
 
 api_key = st.secrets["OPENWEATHER_API_KEY"]
 
-# ✨ NEW: detect and store viewer timezone once
+# ✨ Detect and store viewer timezone once (replaces get_browser_timezone)
 if "viewer_tz" not in st.session_state:
-    try:
-        st.session_state.viewer_tz = get_browser_timezone() or "UTC"
-    except Exception:
-        st.session_state.viewer_tz = "UTC"
+    tz = _get_viewer_timezone()
+    st.session_state.viewer_tz = tz or "UTC"
 viewer_tz = st.session_state.viewer_tz
 st.caption(f"Times shown in: {viewer_tz}")
 
@@ -608,6 +626,7 @@ st.markdown("""
   </div>
 </div>
 """, unsafe_allow_html=True)
+
 
 
 
