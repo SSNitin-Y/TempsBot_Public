@@ -576,9 +576,9 @@ footer_html = """
   .footer-title {
     color: var(--brand);
     font-weight: 600;
-    font-size: 1em;
+    font-size: 0.9em;
     line-height: 1.6;
-    margin: 10px 0 6px 0;
+    text-align: center;
     white-space: nowrap;        /* keep on one line on normal screens */
   }
 
