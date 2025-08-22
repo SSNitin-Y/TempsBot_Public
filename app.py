@@ -35,23 +35,21 @@ except Exception:
 
 from datetime import datetime
 
-# === UX micro‑styles (selectbox width + wrap options) ===
+# --- UI tweak: keep long select values inside the borders ---
 st.markdown("""
 <style>
-/* Make the select control wider */
-div[data-testid="stSelectbox"] div[data-baseweb="select"] { min-width: 520px !important; }
+/* Make the BaseWeb Select (used by st.selectbox) not overflow its column */
+div[data-baseweb="select"] > div { max-width: 100%; }
 
-/* Make the opened dropdown popover wider & taller */
-div[data-baseweb="popover"] { width: 560px !important; }
-div[data-baseweb="menu"]    { max-height: 420px !important; }
-
-/* Allow long options to wrap instead of being cut off */
-div[role="listbox"] div[role="option"] {
-  white-space: normal !important;
-  line-height: 1.35 !important;
+/* Truncate the selected value instead of letting it stretch the control */
+div[data-baseweb="select"] span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>
 """, unsafe_allow_html=True)
+
 
 
 def render_alerts(alerts, condensed=False):
@@ -248,7 +246,7 @@ units_mode = "metric" if unit_choice.startswith("Metric") else "imperial"
 # ---- Inputs form ----
 with st.form("inputs"):
     # CHANGED: give the selectbox column a bit more width ([2, 3])
-    col1, col2 = st.columns([2, 3], gap="medium")
+    col1, col2 = st.columns([1, 1.6], gap="medium")
     with col1:
         city = st.text_input("Enter your city:", value=st.session_state.get("city", ""),
                              help="Try: Boston, London, Mumbai …")
