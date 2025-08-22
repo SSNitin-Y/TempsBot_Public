@@ -34,28 +34,6 @@ except Exception:
     REPORTLAB_OK = False
 
 from datetime import datetime
-from zoneinfo import ZoneInfo                              # ✨ for timezone conversion
-
-# ✨ NEW: correct import for browser-side JS evaluation (replaces get_browser_timezone)
-try:
-    from streamlit_js_eval import streamlit_js_eval
-except Exception:
-    streamlit_js_eval = None
-
-def _get_viewer_timezone():
-    """
-    Returns an IANA timezone like 'America/New_York' by evaluating a small JS
-    expression in the browser. Can be None on first render; we fall back to UTC.
-    """
-    if streamlit_js_eval is None:
-        return None
-    try:
-        return streamlit_js_eval(
-            js_expressions="Intl.DateTimeFormat().resolvedOptions().timeZone",
-            key="__viewer_tz__"
-        )
-    except Exception:
-        return None
 
 # --- UI tweak: keep long select values inside the borders ---
 st.markdown("""
@@ -73,6 +51,7 @@ div[data-baseweb="select"] span {
 """, unsafe_allow_html=True)
 
 
+
 def render_alerts(alerts, condensed=False):
     """
     Renders OpenWeather 'alerts' list with expanders and no forced truncation.
@@ -88,15 +67,12 @@ def render_alerts(alerts, condensed=False):
         sender = a.get("sender_name") or ""
         start_ts = a.get("start")
         end_ts   = a.get("end")
-
-        # Convert epoch -> viewer's local time (uses st.session_state.viewer_tz)
+        # Convert epoch -> local human time if present
         def _fmt(ts):
             try:
-                tzinfo = ZoneInfo(st.session_state.get("viewer_tz", "UTC"))
-                return datetime.fromtimestamp(int(ts), tz=tzinfo).strftime("%a, %b %d • %I:%M %p")
+                return datetime.fromtimestamp(int(ts)).strftime("%a, %b %d • %I:%M %p")
             except Exception:
                 return None
-
         when_bits = []
         s = _fmt(start_ts); e = _fmt(end_ts)
         if s: when_bits.append(f"**Starts:** {s}")
@@ -113,10 +89,12 @@ def render_alerts(alerts, condensed=False):
 
         with st.expander(header_line, expanded=True):
             if condensed and rest:
+                # Show a short preview + expandable full text
                 st.markdown(first_para)
                 with st.expander("Show full text"):
                     st.markdown(desc.replace("\n", "  \n"))  # preserve newlines
             else:
+                # Full text by default
                 st.markdown(desc.replace("\n", "  \n"))
 
             # Optional: quick download for this alert text
@@ -260,13 +238,6 @@ with st.expander("👋 What I do (tap to read)", expanded=False):
 
 api_key = st.secrets["OPENWEATHER_API_KEY"]
 
-# ✨ Detect and store viewer timezone once (replaces get_browser_timezone)
-if "viewer_tz" not in st.session_state:
-    tz = _get_viewer_timezone()
-    st.session_state.viewer_tz = tz or "UTC"
-viewer_tz = st.session_state.viewer_tz
-st.caption(f"Times shown in: {viewer_tz}")
-
 # Sidebar simple units setting (optional)
 with st.sidebar.expander("⚙️ Settings", expanded=False):
     unit_choice = st.radio("Units", ["Metric (°C, m/s)", "Imperial (°F, mph)"], index=0)
@@ -274,7 +245,7 @@ units_mode = "metric" if unit_choice.startswith("Metric") else "imperial"
 
 # ---- Inputs form ----
 with st.form("inputs"):
-    # CHANGED earlier: give the selectbox column a bit more width ([1, 1.6])
+    # CHANGED: give the selectbox column a bit more width ([2, 3])
     col1, col2 = st.columns([1, 1.6], gap="medium")
     with col1:
         city = st.text_input("Enter your city:", value=st.session_state.get("city", ""),
@@ -476,11 +447,6 @@ if st.session_state.get("plan_ready"):
                 if df_hourly.empty:
                     st.info("No hourly data available.")
                 else:
-                    # ✨ Convert to viewer timezone if the 'datetime' is UTC/naive ISO
-                    import pandas as pd
-                    df_hourly = df_hourly.copy()
-                    df_hourly["datetime"] = pd.to_datetime(df_hourly["datetime"], utc=True).dt.tz_convert(st.session_state.viewer_tz)
-
                     st.dataframe(
                         df_hourly[["datetime","temp","uvi","pop","wind_speed","wind_gust"]],
                         use_container_width=True, hide_index=True
@@ -502,11 +468,6 @@ if st.session_state.get("plan_ready"):
             if df_forecast_json:
                 import pandas as pd
                 df_forecast = pd.read_json(df_forecast_json)
-
-                # ✨ Convert to viewer timezone (assume incoming ISO is UTC)
-                df_forecast = df_forecast.copy()
-                df_forecast["datetime"] = pd.to_datetime(df_forecast["datetime"], utc=True).dt.tz_convert(st.session_state.viewer_tz)
-
                 st.dataframe(
                     df_forecast[['datetime','temperature','humidity','condition']].rename(
                         columns={'datetime':'Date/Time','temperature':'Temp °C','humidity':'Humidity %','condition':'Condition'}
@@ -593,12 +554,14 @@ if st.session_state.get("plan_ready"):
 # Footer
 st.write("---")
 st.markdown("""
+
 <style>
 .footer-container { text-align:center; font-size:0.9em; line-height:1.6; }
 .social-link { text-decoration:none; color:inherit; }
 .social-link:hover { color:#00A37A !important; }
 .social-icon { vertical-align:middle; margin-right:6px; }
 .social-row { display:flex; justify-content:center; gap:24px; flex-wrap:wrap; margin:6px 0 12px 0; }
+
 </style>
 
 <div class="footer-container">
@@ -623,11 +586,6 @@ st.markdown("""
       <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" width="16" class="social-icon">
       GitHub - <b>Ashraiy</b>
     </a>
-  </div>
-</div>
-""", unsafe_allow_html=True)
-
-
 
 
 
