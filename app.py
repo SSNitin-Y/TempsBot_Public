@@ -2,6 +2,7 @@ import streamlit as st
 import matplotlib.pyplot as plt
 from io import BytesIO
 import hashlib, json, re
+from streamlit.components.v1 import html as st_html
 
 from weather_api import get_weather
 from summarizer import summarize_weather
@@ -554,46 +555,58 @@ if st.session_state.get("plan_ready"):
 
 # Footer
 st.write("---")
-st.markdown(
-    """
-    <style>
-        .footer-container {
-            text-align: center;
-            font-size: 0.9em;
-            line-height: 1.6;
-        }
-        .social-link {
-            text-decoration: none;
-            color: inherit;
-        }
-        .social-link:hover { color: #00A37A !important; }
-        .social-icon { vertical-align: middle; margin-right: 6px; }
 
-        /* NEW: side-by-side rows */
-        .social-row {
-            display: flex;
-            justify-content: center;
-            gap: 24px;
-            flex-wrap: wrap; /* wraps on small screens */
-            margin: 6px 0 12px 0;
-        }
-    </style>
+footer_html = """
+<style>
+  .footer-container {
+      text-align: center;
+      font-size: 0.9em;
+      line-height: 1.6;
+  }
+  .social-link { text-decoration: none; color: inherit; }
+  .social-link:hover { color: #00A37A !important; }
+  .social-icon { vertical-align: middle; margin-right: 6px; }
+  .social-row {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      flex-wrap: wrap;
+      margin: 6px 0 12px 0;
+  }
+</style>
 
-    <div class="footer-container">
-        Made out of curiosity to learn • In collaboration between <b>Ashraiy</b> and <b>Nitin</b>
-        <br><br>
+<div class="footer-container">
+  Made out of curiosity to learn • In collaboration between <b>Ashraiy</b> and <b>Nitin</b>
+  <br><br>
 
-        <!-- LinkedIn row (side-by-side) -->
-        <div class="social-row">
-            <a href="https://www.linkedin.com/in/ssny15" target="_blank" class="social-link"><img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="16" class="social-icon">
-                LinkedIn - <b>Nitin</b></a><a href="https://www.linkedin.com/in/ashraiy-manohar" target="_blank" class="social-link"><img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="16" class="social-icon">
-                LinkedIn - <b>Ashraiy</b></a></div><!-- GitHub row (side-by-side) --><div class="social-row"><a href="https://github.com/SSNitin-Y" target="_blank" class="social-link"><img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" width="16" class="social-icon">
-                GitHub - <b>Nitin</b></a><a href="https://github.com/ashraiymanohar-maker" target="_blank" class="social-link"><img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" width="16" class="social-icon">
-                GitHub - <b>Ashraiy</b></a></div>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+  <!-- LinkedIn row (side-by-side) -->
+  <div class="social-row">
+    <a href="https://www.linkedin.com/in/ssny15" target="_blank" class="social-link">
+      <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="16" class="social-icon">
+      LinkedIn - <b>Nitin</b>
+    </a>
+    <a href="https://www.linkedin.com/in/ashraiy-manohar" target="_blank" class="social-link">
+      <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="16" class="social-icon">
+      LinkedIn - <b>Ashraiy</b>
+    </a>
+  </div>
+
+  <!-- GitHub row (side-by-side) -->
+  <div class="social-row">
+    <a href="https://github.com/SSNitin-Y" target="_blank" class="social-link">
+      <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" width="16" class="social-icon">
+      GitHub - <b>Nitin</b>
+    </a>
+    <a href="https://github.com/ashraiymanohar-maker" target="_blank" class="social-link">
+      <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" width="16" class="social-icon">
+      GitHub - <b>Ashraiy</b>
+    </a>
+  </div>
+</div>
+"""
+
+st_html(footer_html, height=200)
+
 
 
 
