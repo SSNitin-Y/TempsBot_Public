@@ -580,7 +580,6 @@ footer_html = """
     line-height: 1.6;
     margin: 10px 0 6px 0;
     white-space: nowrap;        /* keep on one line on normal screens */
-    overflow-x: auto;           /* allow gentle scroll on very small screens */
   }
 
   /* rows for social links (centered, side-by-side; will wrap if too narrow) */
