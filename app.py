@@ -569,7 +569,6 @@ footer_html = """
       justify-content: center;
       align-items: center;
       gap: 32px;   /* spacing between icons */
-      flex-wrap: wrap;
       margin: 10px 0;
   }
   .social-link {
