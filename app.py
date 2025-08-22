@@ -558,9 +558,11 @@ footer_html = """
 <style>
   .footer-container {
       text-align: center;
-      font-size: 0.9em;
+      font-size: 0.95em;
       line-height: 1.6;
       margin-top: 12px;
+      color: #00A37A;   /* TempsBot Green for main line */
+      font-weight: 500;
   }
   .social-row {
       display: flex;
