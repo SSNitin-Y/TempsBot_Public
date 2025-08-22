@@ -556,72 +556,92 @@ st.write("---")
 
 footer_html = """
 <style>
-  .footer-container {
-      text-align: center;
-      font-size: 1em;
-      line-height: 1.6;
-      margin-top: 12px;
-      margin-left: 70px;   /* extra margin on sides */
-      margin-right: 40px;
-      color: #00A37A;      /* TempsBot Green */
-      font-weight: 600;
-      white-space: nowrap; /* force text to stay on one line */
-      overflow-x: auto;    /* allow scroll if screen too narrow */
+  :root { --brand: #00A37A; }
+
+  /* full-width outer centers the inner wrapper */
+  .footer-outer {
+    width: 100%;
+    display: flex;
+    justify-content: center;
   }
+  /* keep footer content centered and not too wide */
+  .footer-inner {
+    max-width: 980px;
+    width: 100%;
+    text-align: center;
+    padding: 6px 12px;
+  }
+
+  /* headline in green; prefer single line but remain responsive */
+  .footer-title {
+    color: var(--brand);
+    font-weight: 600;
+    font-size: 1em;
+    line-height: 1.6;
+    margin: 10px 0 6px 0;
+    white-space: nowrap;        /* keep on one line on normal screens */
+    overflow-x: auto;           /* allow gentle scroll on very small screens */
+  }
+
+  /* rows for social links (centered, side-by-side; will wrap if too narrow) */
   .social-row {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 36px;
-      width: 100%;
-      margin: 12px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 36px;
+    margin: 10px 0;
   }
+
+  /* link styling */
   .social-link {
-      font-size: 1em;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: color 0.25s ease;
-      text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    transition: color .2s ease;
+    font-size: 1em;
   }
-  .social-link.linkedin { color: #0A66C2; }   /* LinkedIn Blue */
-  .social-link.github   { color: #333333; }   /* GitHub Gray */
-  .social-link:hover { color: #00A37A !important; }
+  .social-link.linkedin { color: #0A66C2; }   /* LinkedIn blue */
+  .social-link.github   { color: #fcfcfc; }   /* GitHub gray  */
+  .social-link:hover    { color: var(--brand) !important; } /* your green on hover */
+
   .social-icon { vertical-align: middle; }
 </style>
 
-<div class="footer-container">
-  Made out of curiosity to learn • In collaboration between <b>Ashraiy</b> and <b>Nitin</b>
-</div>
+<div class="footer-outer">
+  <div class="footer-inner">
+    <div class="footer-title">
+      Made out of curiosity to learn • In collaboration between <b>Ashraiy</b> and <b>Nitin</b>
+    </div>
 
-<!-- LinkedIn row -->
-<div class="social-row">
-  <a href="https://www.linkedin.com/in/ssny15" target="_blank" class="social-link linkedin">
-    <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="18" class="social-icon">
-    LinkedIn - <b>Nitin</b>
-  </a>
-  <a href="https://www.linkedin.com/in/ashraiy-manohar" target="_blank" class="social-link linkedin">
-    <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="18" class="social-icon">
-    LinkedIn - <b>Ashraiy</b>
-  </a>
-</div>
+    <!-- LinkedIn row -->
+    <div class="social-row">
+      <a href="https://www.linkedin.com/in/ssny15" target="_blank" class="social-link linkedin">
+        <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="18" class="social-icon" alt="LinkedIn">
+        LinkedIn – <b>Nitin</b>
+      </a>
+      <a href="https://www.linkedin.com/in/ashraiy-manohar" target="_blank" class="social-link linkedin">
+        <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="18" class="social-icon" alt="LinkedIn">
+        LinkedIn – <b>Ashraiy</b>
+      </a>
+    </div>
 
-<!-- GitHub row -->
-<div class="social-row">
-  <a href="https://github.com/SSNitin-Y" target="_blank" class="social-link github">
-    <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" width="18" class="social-icon">
-    GitHub - <b>Nitin</b>
-  </a>
-  <a href="https://github.com/ashraiymanohar-maker" target="_blank" class="social-link github">
-    <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" width="18" class="social-icon">
-    GitHub - <b>Ashraiy</b>
-  </a>
+    <!-- GitHub row -->
+    <div class="social-row">
+      <a href="https://github.com/SSNitin-Y" target="_blank" class="social-link github">
+        <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" width="18" class="social-icon" alt="GitHub">
+        GitHub – <b>Nitin</b>
+      </a>
+      <a href="https://github.com/ashraiymanohar-maker" target="_blank" class="social-link github">
+        <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" width="18" class="social-icon" alt="GitHub">
+        GitHub – <b>Ashraiy</b>
+      </a>
+    </div>
+  </div>
 </div>
 """
 
 st.components.v1.html(footer_html, height=260)
-
-
 
 
 
