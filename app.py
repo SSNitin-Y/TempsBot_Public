@@ -560,16 +560,27 @@ footer_html = """
       text-align: center;
       font-size: 0.9em;
       line-height: 1.6;
+      margin-top: 12px;
   }
-  .social-link { text-decoration: none; color: inherit; }
-  .social-link:hover { color: #00A37A !important; }
-  .social-icon { vertical-align: middle; margin-right: 6px; }
   .social-row {
       display: flex;
       justify-content: center;
-      gap: 24px;
+      align-items: center;
+      gap: 32px;   /* spacing between icons */
       flex-wrap: wrap;
-      margin: 6px 0 12px 0;
+      margin: 10px 0;
+  }
+  .social-link {
+      font-size: 0.95em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+  }
+  .social-link.linkedin { color: #0A66C2; }   /* LinkedIn Blue */
+  .social-link.github   { color: #333333; }   /* GitHub gray/black */
+  .social-link:hover { opacity: 0.8; }
+  .social-icon {
+      vertical-align: middle;
   }
 </style>
 
@@ -577,33 +588,34 @@ footer_html = """
   Made out of curiosity to learn • In collaboration between <b>Ashraiy</b> and <b>Nitin</b>
   <br><br>
 
-  <!-- LinkedIn row (side-by-side) -->
+  <!-- LinkedIn row (side-by-side + centered) -->
   <div class="social-row">
-    <a href="https://www.linkedin.com/in/ssny15" target="_blank" class="social-link">
-      <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="16" class="social-icon">
+    <a href="https://www.linkedin.com/in/ssny15" target="_blank" class="social-link linkedin">
+      <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="18" class="social-icon">
       LinkedIn - <b>Nitin</b>
     </a>
-    <a href="https://www.linkedin.com/in/ashraiy-manohar" target="_blank" class="social-link">
-      <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="16" class="social-icon">
+    <a href="https://www.linkedin.com/in/ashraiy-manohar" target="_blank" class="social-link linkedin">
+      <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="18" class="social-icon">
       LinkedIn - <b>Ashraiy</b>
     </a>
   </div>
 
-  <!-- GitHub row (side-by-side) -->
+  <!-- GitHub row (side-by-side + centered) -->
   <div class="social-row">
-    <a href="https://github.com/SSNitin-Y" target="_blank" class="social-link">
-      <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" width="16" class="social-icon">
+    <a href="https://github.com/SSNitin-Y" target="_blank" class="social-link github">
+      <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" width="18" class="social-icon">
       GitHub - <b>Nitin</b>
     </a>
-    <a href="https://github.com/ashraiymanohar-maker" target="_blank" class="social-link">
-      <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" width="16" class="social-icon">
+    <a href="https://github.com/ashraiymanohar-maker" target="_blank" class="social-link github">
+      <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" width="18" class="social-icon">
       GitHub - <b>Ashraiy</b>
     </a>
   </div>
 </div>
 """
 
-st_html(footer_html, height=200)
+st.components.v1.html(footer_html, height=220)
+
 
 
 
