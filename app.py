@@ -553,94 +553,41 @@ if st.session_state.get("plan_ready"):
 
 # Footer
 st.write("---")
-
-footer_html = """
+st.markdown("""
 <style>
-  :root { --brand: #00A37A; }
-
-  /* full-width outer centers the inner wrapper */
-  .footer-outer {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-  }
-  /* keep footer content centered and not too wide */
-  .footer-inner {
-    max-width: 980px;
-    width: 100%;
-    text-align: center;
-    padding: 6px 12px;
-  }
-
-  /* headline in green; prefer single line but remain responsive */
-  .footer-title {
-    color: var(--brand);
-    font-weight: 600;
-    font-size: 0.9em;
-    line-height: 1.6;
-    text-align: center;
-    white-space: nowrap;        /* keep on one line on normal screens */
-  }
-
-  /* rows for social links (centered, side-by-side; will wrap if too narrow) */
-  .social-row {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 36px;
-    margin: 10px 0;
-  }
-
-  /* link styling */
-  .social-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    text-decoration: none;
-    transition: color .2s ease;
-    font-size: 1em;
-  }
-  .social-link.linkedin { color: #0A66C2; }   /* LinkedIn blue */
-  .social-link.github   { color: #fcfcfc; }   /* GitHub gray  */
-  .social-link:hover    { color: var(--brand) !important; } /* your green on hover */
-
-  .social-icon { vertical-align: middle; }
+.footer-container { text-align:center; font-size:0.9em; line-height:1.6; }
+.social-link { text-decoration:none; color:inherit; }
+.social-link:hover { color:#00A37A !important; }
+.social-icon { vertical-align:middle; margin-right:6px; }
+.social-row { display:flex; justify-content:center; gap:24px; flex-wrap:wrap; margin:6px 0 12px 0; }
 </style>
 
-<div class="footer-outer">
-  <div class="footer-inner">
-    <div class="footer-title">
-      Made out of curiosity to learn • In collaboration between <b>Ashraiy</b> and <b>Nitin</b>
-    </div>
-
-    <!-- LinkedIn row -->
-    <div class="social-row">
-      <a href="https://www.linkedin.com/in/ssny15" target="_blank" class="social-link linkedin">
-        <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="18" class="social-icon" alt="LinkedIn">
-        LinkedIn – <b>Nitin</b>
-      </a>
-      <a href="https://www.linkedin.com/in/ashraiy-manohar" target="_blank" class="social-link linkedin">
-        <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="18" class="social-icon" alt="LinkedIn">
-        LinkedIn – <b>Ashraiy</b>
-      </a>
-    </div>
-
-    <!-- GitHub row -->
-    <div class="social-row">
-      <a href="https://github.com/SSNitin-Y" target="_blank" class="social-link github">
-        <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" width="18" class="social-icon" alt="GitHub">
-        GitHub – <b>Nitin</b>
-      </a>
-      <a href="https://github.com/ashraiymanohar-maker" target="_blank" class="social-link github">
-        <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" width="18" class="social-icon" alt="GitHub">
-        GitHub – <b>Ashraiy</b>
-      </a>
-    </div>
+<div class="footer-container">
+  Made out of curiosity to learn • In collaboration between <b>Ashraiy</b> and <b>Nitin</b>
+  <br><br>
+  <div class="social-row">
+    <a href="https://www.linkedin.com/in/ssny15" target="_blank" class="social-link">
+      <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="16" class="social-icon">
+      LinkedIn - <b>Nitin</b>
+    </a>
+    <a href="https://www.linkedin.com/in/ashraiy-manohar" target="_blank" class="social-link">
+      <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="16" class="social-icon">
+      LinkedIn - <b>Ashraiy</b>
+    </a>
+  </div>
+  <div class="social-row">
+    <a href="https://github.com/SSNitin-Y" target="_blank" class="social-link">
+      <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" width="16" class="social-icon">
+      GitHub - <b>Nitin</b>
+    </a>
+    <a href="https://github.com/ashraiymanohar-maker" target="_blank" class="social-link">
+      <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" width="16" class="social-icon">
+      GitHub - <b>Ashraiy</b>
+    </a>
   </div>
 </div>
-"""
+""", unsafe_allow_html=True)
 
-st.components.v1.html(footer_html, height=260)
 
 
 
