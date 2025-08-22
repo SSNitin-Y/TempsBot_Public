@@ -551,17 +551,16 @@ if st.session_state.get("plan_ready"):
         st.info("Install ReportLab to enable PDF download: `pip install reportlab`")
 
 
+
 # Footer
 st.write("---")
 st.markdown("""
-
 <style>
 .footer-container { text-align:center; font-size:0.9em; line-height:1.6; }
 .social-link { text-decoration:none; color:inherit; }
 .social-link:hover { color:#00A37A !important; }
 .social-icon { vertical-align:middle; margin-right:6px; }
 .social-row { display:flex; justify-content:center; gap:24px; flex-wrap:wrap; margin:6px 0 12px 0; }
-
 </style>
 
 <div class="footer-container">
@@ -586,6 +585,9 @@ st.markdown("""
       <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" width="16" class="social-icon">
       GitHub - <b>Ashraiy</b>
     </a>
+  </div>
+</div>
+""", unsafe_allow_html=True)
 
 
 
