@@ -578,7 +578,7 @@ footer_html = """
       transition: color 0.25s ease;
   }
   .social-link.linkedin { color: #0A66C2; }   /* LinkedIn Blue */
-  .social-link.github   { color: #333333; }   /* GitHub Gray */
+  .social-link.github   { color: #fcfcfc; }   /* GitHub White */
   .social-link:hover { color: #00A37A !important; }  /* Hover = TempsBot green */
   .social-icon {
       vertical-align: middle;
