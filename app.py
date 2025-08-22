@@ -575,10 +575,11 @@ footer_html = """
       display: flex;
       align-items: center;
       gap: 6px;
+      transition: color 0.25s ease;
   }
   .social-link.linkedin { color: #0A66C2; }   /* LinkedIn Blue */
-  .social-link.github   { color: #333333; }   /* GitHub gray/black */
-  .social-link:hover { opacity: 0.8; }
+  .social-link.github   { color: #333333; }   /* GitHub Gray */
+  .social-link:hover { color: #00A37A !important; }  /* Hover = TempsBot green */
   .social-icon {
       vertical-align: middle;
   }
@@ -588,7 +589,7 @@ footer_html = """
   Made out of curiosity to learn • In collaboration between <b>Ashraiy</b> and <b>Nitin</b>
   <br><br>
 
-  <!-- LinkedIn row (side-by-side + centered) -->
+  <!-- LinkedIn row -->
   <div class="social-row">
     <a href="https://www.linkedin.com/in/ssny15" target="_blank" class="social-link linkedin">
       <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="18" class="social-icon">
@@ -600,7 +601,7 @@ footer_html = """
     </a>
   </div>
 
-  <!-- GitHub row (side-by-side + centered) -->
+  <!-- GitHub row -->
   <div class="social-row">
     <a href="https://github.com/SSNitin-Y" target="_blank" class="social-link github">
       <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" width="18" class="social-icon">
@@ -615,8 +616,6 @@ footer_html = """
 """
 
 st.components.v1.html(footer_html, height=220)
-
-
 
 
 
