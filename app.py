@@ -563,13 +563,13 @@ footer_html = """
   }
   .social-link { text-decoration: none; color: inherit; }
   .social-link:hover { color: #00A37A !important; }
-  .social-icon { vertical-align: middle; margin-right: 6px; }
+  .social-icon { vertical-align: middle; margin-right: 12px; }
   .social-row {
       display: flex;
       justify-content: center;
-      gap: 24px;
+      gap: 48px;
       flex-wrap: wrap;
-      margin: 6px 0 12px 0;
+      margin: 10px 0 20px 0;
   }
 </style>
 
