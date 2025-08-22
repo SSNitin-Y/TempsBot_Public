@@ -585,27 +585,11 @@ st.markdown(
 
         <!-- LinkedIn row (side-by-side) -->
         <div class="social-row">
-            <a href="https://www.linkedin.com/in/ssny15" target="_blank" class="social-link">
-                <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="16" class="social-icon">
-                LinkedIn - <b>Nitin</b>
-            </a>
-            <a href="https://www.linkedin.com/in/ashraiy-manohar" target="_blank" class="social-link">
-                <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="16" class="social-icon">
-                LinkedIn - <b>Ashraiy</b>
-            </a>
-        </div>
-
-        <!-- GitHub row (side-by-side) -->
-        <div class="social-row">
-            <a href="https://github.com/SSNitin-Y" target="_blank" class="social-link">
-                <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" width="16" class="social-icon">
-                GitHub - <b>Nitin</b>
-            </a>
-            <a href="https://github.com/ashraiymanohar-maker" target="_blank" class="social-link">
-                <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" width="16" class="social-icon">
-                GitHub - <b>Ashraiy</b>
-            </a>
-        </div>
+            <a href="https://www.linkedin.com/in/ssny15" target="_blank" class="social-link"><img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="16" class="social-icon">
+                LinkedIn - <b>Nitin</b></a><a href="https://www.linkedin.com/in/ashraiy-manohar" target="_blank" class="social-link"><img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="16" class="social-icon">
+                LinkedIn - <b>Ashraiy</b></a></div><!-- GitHub row (side-by-side) --><div class="social-row"><a href="https://github.com/SSNitin-Y" target="_blank" class="social-link"><img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" width="16" class="social-icon">
+                GitHub - <b>Nitin</b></a><a href="https://github.com/ashraiymanohar-maker" target="_blank" class="social-link"><img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" width="16" class="social-icon">
+                GitHub - <b>Ashraiy</b></a></div>
     </div>
     """,
     unsafe_allow_html=True
