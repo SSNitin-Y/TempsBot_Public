@@ -558,65 +558,69 @@ footer_html = """
 <style>
   .footer-container {
       text-align: center;
-      font-size: 0.95em;
+      font-size: 1em;
       line-height: 1.6;
       margin-top: 12px;
-      color: #00A37A;   /* TempsBot Green for main line */
-      font-weight: 500;
+      margin-left: 40px;   /* extra margin on sides */
+      margin-right: 40px;
+      color: #00A37A;      /* TempsBot Green */
+      font-weight: 600;
+      white-space: nowrap; /* force text to stay on one line */
+      overflow-x: auto;    /* allow scroll if screen too narrow */
   }
   .social-row {
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 32px;   /* spacing between icons */
-      margin: 10px 0;
+      gap: 36px;
+      width: 100%;
+      margin: 12px 0;
   }
   .social-link {
-      font-size: 0.95em;
+      font-size: 1em;
       display: flex;
       align-items: center;
       gap: 6px;
       transition: color 0.25s ease;
+      text-decoration: none;
   }
   .social-link.linkedin { color: #0A66C2; }   /* LinkedIn Blue */
-  .social-link.github   { color: #fcfcfc; }   /* GitHub White */
-  .social-link:hover { color: #00A37A !important; }  /* Hover = TempsBot green */
-  .social-icon {
-      vertical-align: middle;
-  }
+  .social-link.github   { color: #333333; }   /* GitHub Gray */
+  .social-link:hover { color: #00A37A !important; }
+  .social-icon { vertical-align: middle; }
 </style>
 
 <div class="footer-container">
   Made out of curiosity to learn • In collaboration between <b>Ashraiy</b> and <b>Nitin</b>
-  <br><br>
+</div>
 
-  <!-- LinkedIn row -->
-  <div class="social-row">
-    <a href="https://www.linkedin.com/in/ssny15" target="_blank" class="social-link linkedin">
-      <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="18" class="social-icon">
-      LinkedIn - <b>Nitin</b>
-    </a>
-    <a href="https://www.linkedin.com/in/ashraiy-manohar" target="_blank" class="social-link linkedin">
-      <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="18" class="social-icon">
-      LinkedIn - <b>Ashraiy</b>
-    </a>
-  </div>
+<!-- LinkedIn row -->
+<div class="social-row">
+  <a href="https://www.linkedin.com/in/ssny15" target="_blank" class="social-link linkedin">
+    <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="18" class="social-icon">
+    LinkedIn - <b>Nitin</b>
+  </a>
+  <a href="https://www.linkedin.com/in/ashraiy-manohar" target="_blank" class="social-link linkedin">
+    <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="18" class="social-icon">
+    LinkedIn - <b>Ashraiy</b>
+  </a>
+</div>
 
-  <!-- GitHub row -->
-  <div class="social-row">
-    <a href="https://github.com/SSNitin-Y" target="_blank" class="social-link github">
-      <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" width="18" class="social-icon">
-      GitHub - <b>Nitin</b>
-    </a>
-    <a href="https://github.com/ashraiymanohar-maker" target="_blank" class="social-link github">
-      <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" width="18" class="social-icon">
-      GitHub - <b>Ashraiy</b>
-    </a>
-  </div>
+<!-- GitHub row -->
+<div class="social-row">
+  <a href="https://github.com/SSNitin-Y" target="_blank" class="social-link github">
+    <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" width="18" class="social-icon">
+    GitHub - <b>Nitin</b>
+  </a>
+  <a href="https://github.com/ashraiymanohar-maker" target="_blank" class="social-link github">
+    <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" width="18" class="social-icon">
+    GitHub - <b>Ashraiy</b>
+  </a>
 </div>
 """
 
-st.components.v1.html(footer_html, height=220)
+st.components.v1.html(footer_html, height=260)
+
 
 
 
