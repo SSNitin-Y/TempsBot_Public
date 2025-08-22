@@ -1,4 +1,4 @@
-pip install streamlit-js-eval
+pip install streamlit_js_eval
 import streamlit as st
 import matplotlib.pyplot as plt
 from io import BytesIO
