@@ -34,6 +34,25 @@ except Exception:
 
 from datetime import datetime
 
+# === UX micro‑styles (selectbox width + wrap options) ===
+st.markdown("""
+<style>
+/* Make the select control wider */
+div[data-testid="stSelectbox"] div[data-baseweb="select"] { min-width: 520px !important; }
+
+/* Make the opened dropdown popover wider & taller */
+div[data-baseweb="popover"] { width: 560px !important; }
+div[data-baseweb="menu"]    { max-height: 420px !important; }
+
+/* Allow long options to wrap instead of being cut off */
+div[role="listbox"] div[role="option"] {
+  white-space: normal !important;
+  line-height: 1.35 !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
+
 def render_alerts(alerts, condensed=False):
     """
     Renders OpenWeather 'alerts' list with expanders and no forced truncation.
@@ -227,7 +246,8 @@ units_mode = "metric" if unit_choice.startswith("Metric") else "imperial"
 
 # ---- Inputs form ----
 with st.form("inputs"):
-    col1, col2 = st.columns([2, 2], gap="medium")
+    # CHANGED: give the selectbox column a bit more width ([2, 3])
+    col1, col2 = st.columns([2, 3], gap="medium")
     with col1:
         city = st.text_input("Enter your city:", value=st.session_state.get("city", ""),
                              help="Try: Boston, London, Mumbai …")
@@ -411,12 +431,9 @@ if st.session_state.get("plan_ready"):
         st.caption(f"UV data source: One Call {uv_source}" if uv_source else "UV data source: unavailable")
 
     # Weather Alerts
-    # === Weather Alerts ===
     if alerts:
-        # toggle to preview short or full alerts (no forced truncation)
         condensed_mode = st.toggle("Show alerts in condensed mode", value=False, key="alerts_condensed")
         render_alerts(alerts, condensed=condensed_mode)
-
 
     # Forecast toggle: Today (hourly) / Next 5 days
     with st.expander("📊 Forecast", expanded=True):
@@ -549,28 +566,47 @@ st.markdown(
             text-decoration: none;
             color: inherit;
         }
-        .social-link:hover {
-            color: #00A37A !important; /* Climbot primary green */
-        }
-        .social-icon {
-            vertical-align: middle;
-            margin-right: 6px;
+        .social-link:hover { color: #00A37A !important; }
+        .social-icon { vertical-align: middle; margin-right: 6px; }
+
+        /* NEW: side-by-side rows */
+        .social-row {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            flex-wrap: wrap; /* wraps on small screens */
+            margin: 6px 0 12px 0;
         }
     </style>
 
     <div class="footer-container">
         Made out of curiosity to learn • In collaboration between <b>Ashraiy</b> and <b>Nitin</b>
-        <br><br><!-- Nitin's Links --><a href="https://www.linkedin.com/in/ssny15" target="_blank" class="social-link"><img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="16" class="social-icon">LinkedIn - <b>Nitin</b></a><br>
-        <a href="https://github.com/SSNitin-Y" target="_blank" class="social-link">
-            <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" width="16" class="social-icon">
-            GitHub - <b>Nitin</b></a><br><br>
-        <!-- Ashraiy's Links -->
-        <a href="https://www.linkedin.com/in/ashraiy-manohar" target="_blank" class="social-link">
-            <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="16" class="social-icon">
-            LinkedIn - <b>Ashraiy</b></a><br>
-        <a href="https://github.com/ashraiymanohar-maker" target="_blank" class="social-link">
-            <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" width="16" class="social-icon">
-            GitHub - <b>Ashraiy</b></a></div>
+        <br><br>
+
+        <!-- LinkedIn row (side-by-side) -->
+        <div class="social-row">
+            <a href="https://www.linkedin.com/in/ssny15" target="_blank" class="social-link">
+                <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="16" class="social-icon">
+                LinkedIn - <b>Nitin</b>
+            </a>
+            <a href="https://www.linkedin.com/in/ashraiy-manohar" target="_blank" class="social-link">
+                <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="16" class="social-icon">
+                LinkedIn - <b>Ashraiy</b>
+            </a>
+        </div>
+
+        <!-- GitHub row (side-by-side) -->
+        <div class="social-row">
+            <a href="https://github.com/SSNitin-Y" target="_blank" class="social-link">
+                <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" width="16" class="social-icon">
+                GitHub - <b>Nitin</b>
+            </a>
+            <a href="https://github.com/ashraiymanohar-maker" target="_blank" class="social-link">
+                <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" width="16" class="social-icon">
+                GitHub - <b>Ashraiy</b>
+            </a>
+        </div>
+    </div>
     """,
     unsafe_allow_html=True
 )
