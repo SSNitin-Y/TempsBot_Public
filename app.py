@@ -482,7 +482,7 @@ if st.session_state.get("plan_ready"):
                     except Exception:
                         tz_offset = 0
                     df_hourly = df_hourly.copy()
-                    dt_h = pd.to_datetime(df_hourly["datetime"], utc=True, errors="coerce")
+                    dt_h = pd.to_datetime(df_hourly["datetime"], utc=False, errors="coerce")
                     df_hourly["datetime"] = (dt_h + pd.to_timedelta(tz_offset, unit="s")).dt.floor("H")
 
                     st.dataframe(
