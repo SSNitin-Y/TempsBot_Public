@@ -272,8 +272,8 @@ with st.form("inputs"):
     # CHANGED: give the selectbox column a bit more width ([2, 3])
     col1, col2 = st.columns([1, 1.6], gap="medium")
     with col1:
-        city = st.text_input("Enter your city:", value=st.session_state.get("city", ""),
-                             help="Try: Boston, London, Mumbai …")
+        city = st.text_input("Enter your city:", key="city",help="Try: Boston, London, Mumbai …")
+        
     with col2:
         skin_display = st.selectbox(
             "Fitzpatrick skin type:",
@@ -305,7 +305,7 @@ except (IndexError, ValueError):
 # =========================
 # COMPUTE ON SUBMIT
 # =========================
-if submitted and city:
+if submitted and city and city.strip():
     st.session_state.city = city
     st.session_state.skin_idx = ["Type I","Type II","Type III","Type IV","Type V","Type VI"].index(
         skin_display.split(" - ")[0]
