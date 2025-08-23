@@ -380,112 +380,113 @@ if submitted:
         st.session_state.inputs_key = _inputs_key(city, skin_type_number)
         st.session_state.include_daily_tips = include_daily_tips
 
-    # ⭐ ADD: auto-correct the city to a canonical place (works worldwide)
-    display_name, lat, lon = geocode_autofix(city, api_key)
-    if not display_name:
-        st.error("Couldn’t recognize that place. Try adding a country code (e.g., 'Paris, FR').")
-        st.stop()   
+        # ⭐ ADD: auto-correct the city to a canonical place (works worldwide)
+        display_name, lat, lon = geocode_autofix(city, api_key)
+        if not display_name:
+            st.error("Couldn’t recognize that place. Try adding a country code (e.g., 'Paris, FR').")
+            st.stop()
+
         # keep the canonical label + coords in session (no UI change)
         city = display_name
         st.session_state.city = city
         st.session_state.resolved_lat = lat
-        st.session_state.resolved_lon = lon   
+        st.session_state.resolved_lon = lon
+
         # 1) Fetch data (cached) — your existing functions still take the city string
         data = fetch_weather(city, api_key) or {}
         df_forecast = fetch_forecast(city, api_key, units=units_mode)
 
+        # 2) Outfit + GPT summaries
+        outfit_today = get_outfit_recommendation(data) if data else "⚠️ Unable to suggest clothing due to invalid weather data."
+        # Accessory tips based on UV (wind gust not available from current call; pass None or wire from forecast)
+        outfit_today = add_accessory_tips(outfit_today, uv=data.get("uv_index"), wind_gust_ms=None)  # NEW
+        gpt_pack = cached_gpt_summary({"weather": data, "outfit_text": outfit_today})
 
-    # 2) Outfit + GPT summaries
-    outfit_today = get_outfit_recommendation(data) if data else "⚠️ Unable to suggest clothing due to invalid weather data."
-    # Accessory tips based on UV (wind gust not available from current call; pass None or wire from forecast)
-    outfit_today = add_accessory_tips(outfit_today, uv=data.get("uv_index"), wind_gust_ms=None)  # NEW
-    gpt_pack = cached_gpt_summary({"weather": data, "outfit_text": outfit_today})
+        # 3) Outfit forecast HTML + export structures + daily tips
+        try:
+            outfit_recs = generate_outfit_recommendations(df_forecast, uv_hint=data.get("uv_index"))
+        except TypeError:
+            outfit_recs = generate_outfit_recommendations(df_forecast)
 
-    # 3) Outfit forecast HTML + export structures + daily tips
-    try:
-        outfit_recs = generate_outfit_recommendations(df_forecast, uv_hint=data.get("uv_index"))
-    except TypeError:
-        outfit_recs = generate_outfit_recommendations(df_forecast)
+        plan_md_sections, plan_pdf_sections, daily_gpt_tips = [], [], []
 
-    plan_md_sections, plan_pdf_sections, daily_gpt_tips = [], [], []
+        for rec in outfit_recs:
+            soup = BeautifulSoup(rec, 'html.parser')
 
-    for rec in outfit_recs:
-        soup = BeautifulSoup(rec, 'html.parser')
+            date_tag = soup.find('b')
+            if not date_tag:
+                continue
+            date = date_tag.text.replace('📅 ', '').strip()
 
-        date_tag = soup.find('b')
-        if not date_tag:
-            continue
-        date = date_tag.text.replace('📅 ', '').strip()
+            outfit_line = soup.find(string=lambda t: isinstance(t, str) and "Outfit:" in t)
+            if not outfit_line:
+                continue
+            outfit_text = outfit_line.split("Outfit:")[-1].strip()
 
-        outfit_line = soup.find(string=lambda t: isinstance(t, str) and "Outfit:" in t)
-        if not outfit_line:
-            continue
-        outfit_text = outfit_line.split("Outfit:")[-1].strip()
+            labels = [
+                span.text.strip()
+                for span in soup.find_all("span", style=lambda x: x and "font-weight: bold" in x)
+            ]
 
-        labels = [
-            span.text.strip()
-            for span in soup.find_all("span", style=lambda x: x and "font-weight: bold" in x)
-        ]
+            section_md = f"### {date}\n- **Outfit:** {outfit_text}\n"
+            if labels:
+                bullets = "\n".join([f"  - {lbl}" for lbl in labels])
+                section_md += f"- **Color pairs:**\n{bullets}\n"
+            plan_md_sections.append(section_md)
 
-        section_md = f"### {date}\n- **Outfit:** {outfit_text}\n"
-        if labels:
-            bullets = "\n".join([f"  - {lbl}" for lbl in labels])
-            section_md += f"- **Color pairs:**\n{bullets}\n"
-        plan_md_sections.append(section_md)
+            # hexes + labels for PDF/PNG
+            pdf_pairs = []
+            for ddiv in soup.find_all("div", style=lambda x: x and "margin-top" in x):
+                spans = ddiv.find_all("span")
+                hexes = []
+                for sp in spans[:2]:
+                    m = re.search(r'background-color:\s*(#[0-9a-fA-F]{6})', sp.get("style", ""))
+                    if m:
+                        hexes.append(m.group(1))
+                label_span = next((sp for sp in spans[2:] if "font-weight: bold" in (sp.get("style") or "")), None)
+                label_txt = (label_span.text.strip() if label_span else (hexes[0] + " & " + hexes[1]) if len(hexes) == 2 else "")
+                if len(hexes) == 2:
+                    try:
+                        n1, n2 = closest_color_name(hexes[0]), closest_color_name(hexes[1])
+                        label_txt = f"{n1} ({hexes[0]}) & {n2} ({hexes[1]})"
+                    except Exception:
+                        pass
+                    pdf_pairs.append((hexes[0], hexes[1], label_txt))
+            plan_pdf_sections.append({"date": date, "outfit": outfit_text, "pairs": pdf_pairs})
 
-        # hexes + labels for PDF/PNG
-        pdf_pairs = []
-        for ddiv in soup.find_all("div", style=lambda x: x and "margin-top" in x):
-            spans = ddiv.find_all("span")
-            hexes = []
-            for sp in spans[:2]:
-                m = re.search(r'background-color:\s*(#[0-9a-fA-F]{6})', sp.get("style", ""))
-                if m:
-                    hexes.append(m.group(1))
-            label_span = next((sp for sp in spans[2:] if "font-weight: bold" in (sp.get("style") or "")), None)
-            label_txt = (label_span.text.strip() if label_span else (hexes[0] + " & " + hexes[1]) if len(hexes) == 2 else "")
-            if len(hexes) == 2:
+            if include_daily_tips:
                 try:
-                    n1, n2 = closest_color_name(hexes[0]), closest_color_name(hexes[1])
-                    label_txt = f"{n1} ({hexes[0]}) & {n2} ({hexes[1]})"
+                    tip = cached_daily_tip(date, outfit_text, labels)
                 except Exception:
-                    pass
-                pdf_pairs.append((hexes[0], hexes[1], label_txt))
-        plan_pdf_sections.append({"date": date, "outfit": outfit_text, "pairs": pdf_pairs})
+                    tip = "Style tip: pair thoughtfully and stay weather‑smart."
+            else:
+                tip = ""
+            daily_gpt_tips.append(tip)
 
-        if include_daily_tips:
-            try:
-                tip = cached_daily_tip(date, outfit_text, labels)
-            except Exception:
-                tip = "Style tip: pair thoughtfully and stay weather‑smart."
-        else:
-            tip = ""
-        daily_gpt_tips.append(tip)
+        # 4) Weather alerts
+        alerts = data.get("alerts") or []            
 
-    # 4) Weather alerts
-    alerts = data.get("alerts") or []            
+        # 5) Store for render
+        st.session_state.data = data
+        st.session_state.alerts = alerts
+        st.session_state.df_forecast_json = (
+            df_forecast.to_json(date_format="iso") if hasattr(df_forecast, "empty") and not df_forecast.empty else ""
+        )
+        st.session_state.outfit_today = outfit_today
+        st.session_state.gpt_weather = gpt_pack["gpt_weather"]
+        st.session_state.gpt_outfit = gpt_pack["gpt_outfit"]
+        st.session_state.outfit_html_blocks = outfit_recs
+        st.session_state.outfit_gpt_tips = daily_gpt_tips
+        st.session_state.plan_md = "# 5-Day Outfit Plan\n\n" + "\n\n".join(plan_md_sections) if plan_md_sections else ""
+        st.session_state.plan_pdf_bytes = build_outfit_plan_pdf_cached(plan_pdf_sections, city_name=city) if plan_pdf_sections else None
+        # Build PNG color grid
+        try:
+            from export_utils import color_grid_image
+            st.session_state.plan_png_bytes = color_grid_image(plan_pdf_sections)
+        except Exception:
+            st.session_state.plan_png_bytes = None
 
-    # 5) Store for render
-    st.session_state.data = data
-    st.session_state.alerts = alerts
-    st.session_state.df_forecast_json = (
-        df_forecast.to_json(date_format="iso") if hasattr(df_forecast, "empty") and not df_forecast.empty else ""
-    )
-    st.session_state.outfit_today = outfit_today
-    st.session_state.gpt_weather = gpt_pack["gpt_weather"]
-    st.session_state.gpt_outfit = gpt_pack["gpt_outfit"]
-    st.session_state.outfit_html_blocks = outfit_recs
-    st.session_state.outfit_gpt_tips = daily_gpt_tips
-    st.session_state.plan_md = "# 5-Day Outfit Plan\n\n" + "\n\n".join(plan_md_sections) if plan_md_sections else ""
-    st.session_state.plan_pdf_bytes = build_outfit_plan_pdf_cached(plan_pdf_sections, city_name=city) if plan_pdf_sections else None
-    # Build PNG color grid
-    try:
-        from export_utils import color_grid_image
-        st.session_state.plan_png_bytes = color_grid_image(plan_pdf_sections)
-    except Exception:
-        st.session_state.plan_png_bytes = None
-
-    st.session_state.plan_ready = True
+        st.session_state.plan_ready = True
 
 # =========================
 # RENDER FROM SESSION STATE
@@ -720,7 +721,6 @@ st.markdown("""
   </div>
 </div>
 """, unsafe_allow_html=True)
-
 
 
 
