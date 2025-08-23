@@ -305,13 +305,16 @@ except (IndexError, ValueError):
 # =========================
 # COMPUTE ON SUBMIT
 # =========================
-if submitted and city and city.strip():
-    st.session_state.city = city
-    st.session_state.skin_idx = ["Type I","Type II","Type III","Type IV","Type V","Type VI"].index(
-        skin_display.split(" - ")[0]
-    )
-    st.session_state.inputs_key = _inputs_key(city, skin_type_number)
-    st.session_state.include_daily_tips = include_daily_tips
+if submitted:
+    city = st.session_state.get("city", "").strip()
+    if not city:
+        st.warning("Please enter a city.")
+    else:
+        st.session_state.skin_idx = ["Type I","Type II","Type III","Type IV","Type V","Type VI"].index(
+            skin_display.split(" - ")[0]
+        )
+        st.session_state.inputs_key = _inputs_key(city, skin_type_number)
+        st.session_state.include_daily_tips = include_daily_tips
 
     # 1) Fetch data (cached)
     data = fetch_weather(city, api_key) or {}
