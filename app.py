@@ -520,7 +520,7 @@ if st.session_state.get("plan_ready"):
                 except Exception:
                     tz_offset = 0
                 df_forecast = df_forecast.copy()
-                dt_f = pd.to_datetime(df_forecast["datetime"], utc=True, errors="coerce")
+                dt_f = pd.to_datetime(df_forecast["datetime"], utc=False, errors="coerce")
                 df_forecast["datetime"] = (dt_f + pd.to_timedelta(tz_offset, unit="s")).dt.floor("H")
 
                 st.dataframe(
