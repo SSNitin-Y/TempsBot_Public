@@ -35,6 +35,9 @@ except Exception:
 
 from datetime import datetime
 
+# ⭐ NEW: We'll import pandas & date formatter only where needed to minimize global changes
+# (kept as-is at top level for your original style)
+
 # --- UI tweak: keep long select values inside the borders ---
 st.markdown("""
 <style>
@@ -135,6 +138,27 @@ def cached_gpt_summary(payload: dict):
 @st.cache_data(ttl=600)
 def cached_daily_tip(date_text: str, outfit_text: str, color_labels: list[str]) -> str:
     return generate_daily_outfit_summary(date_text, outfit_text, color_labels)
+
+# ⭐ NEW: small helper to get city timezone offset (seconds) from OpenWeather
+@st.cache_data(ttl=3600)
+def get_tz_offset_seconds(lat: float, lon: float, api_key: str) -> int:
+    """
+    Ask OpenWeather One Call for the timezone_offset (seconds) for a lat/lon.
+    Returns 0 on failure (i.e., keeps UTC).
+    """
+    import requests
+    try:
+        r = requests.get(
+            "https://api.openweathermap.org/data/3.0/onecall",
+            params={"lat": lat, "lon": lon, "appid": api_key},
+            timeout=10,
+        )
+        r.raise_for_status()
+        j = r.json()
+        return int(j.get("timezone_offset", 0) or 0)
+    except Exception:
+        return 0
+
 
 @st.cache_data
 def build_outfit_plan_pdf_cached(sections, city_name=""):
@@ -447,6 +471,17 @@ if st.session_state.get("plan_ready"):
                 if df_hourly.empty:
                     st.info("No hourly data available.")
                 else:
+                    # ⭐ NEW: convert UTC → city local time using OpenWeather timezone_offset
+                    import pandas as pd
+                    import matplotlib.dates as mdates
+                    try:
+                        tz_offset = get_tz_offset_seconds(lat, lon, st.secrets["OPENWEATHER_API_KEY"])
+                    except Exception:
+                        tz_offset = 0
+                    df_hourly = df_hourly.copy()
+                    dt_h = pd.to_datetime(df_hourly["datetime"], utc=True, errors="coerce")
+                    df_hourly["datetime"] = dt_h + pd.to_timedelta(tz_offset, unit="s")
+
                     st.dataframe(
                         df_hourly[["datetime","temp","uvi","pop","wind_speed","wind_gust"]],
                         use_container_width=True, hide_index=True
@@ -455,19 +490,36 @@ if st.session_state.get("plan_ready"):
                     fig1, ax1 = plt.subplots(figsize=(8, 2.8))
                     ax1.plot(df_hourly["datetime"], df_hourly["temp"])
                     ax1.set_ylabel("Temp")
+                    ax1.xaxis.set_major_formatter(mdates.DateFormatter("%a %H:%M"))  # ⭐ NEW
+                    fig1.autofmt_xdate()  # ⭐ NEW
                     ax1.tick_params(axis='x', rotation=45)
                     st.pyplot(fig1)
 
                     fig2, ax2 = plt.subplots(figsize=(8, 2.4))
                     ax2.plot(df_hourly["datetime"], df_hourly["pop"], linestyle="--")
                     ax2.set_ylabel("Probability of Precipitation (0–1)")
+                    ax2.xaxis.set_major_formatter(mdates.DateFormatter("%a %H:%M"))  # ⭐ NEW
+                    fig2.autofmt_xdate()  # ⭐ NEW
                     ax2.tick_params(axis='x', rotation=45)
                     st.pyplot(fig2)
         else:
             # Your existing 5-day graph table
             if df_forecast_json:
                 import pandas as pd
+                import matplotlib.dates as mdates
                 df_forecast = pd.read_json(df_forecast_json)
+
+                # ⭐ NEW: convert UTC → city local time using OpenWeather timezone_offset
+                try:
+                    coord = data.get("coord") or {}
+                    lat, lon = coord.get("lat"), coord.get("lon")
+                    tz_offset = get_tz_offset_seconds(lat, lon, st.secrets["OPENWEATHER_API_KEY"]) if (lat is not None and lon is not None) else 0
+                except Exception:
+                    tz_offset = 0
+                df_forecast = df_forecast.copy()
+                dt_f = pd.to_datetime(df_forecast["datetime"], utc=True, errors="coerce")
+                df_forecast["datetime"] = dt_f + pd.to_timedelta(tz_offset, unit="s")
+
                 st.dataframe(
                     df_forecast[['datetime','temperature','humidity','condition']].rename(
                         columns={'datetime':'Date/Time','temperature':'Temp °C','humidity':'Humidity %','condition':'Condition'}
@@ -482,6 +534,8 @@ if st.session_state.get("plan_ready"):
                 ax1.set_xlabel('Date & Time')
                 ax1.set_ylabel('Temp (°C)', color='r')
                 ax2.set_ylabel('Humidity (%)', color='b')
+                ax1.xaxis.set_major_formatter(mdates.DateFormatter("%a %H:%M"))  # ⭐ NEW
+                fig.autofmt_xdate()  # ⭐ NEW
                 ax1.tick_params(axis='x', rotation=45)
                 fig.tight_layout()
                 st.pyplot(fig)
@@ -588,7 +642,6 @@ st.markdown("""
   </div>
 </div>
 """, unsafe_allow_html=True)
-
 
 
 
