@@ -483,7 +483,7 @@ if st.session_state.get("plan_ready"):
                         tz_offset = 0
                     df_hourly = df_hourly.copy()
                     dt_h = pd.to_datetime(df_hourly["datetime"], utc=True, errors="coerce")
-                    df_hourly["datetime"] = dt_h + pd.to_timedelta(tz_offset, unit="s")
+                    df_hourly["datetime"] = (dt_h + pd.to_timedelta(tz_offset, unit="s")).dt.round("H")
 
                     st.dataframe(
                         df_hourly[["datetime","temp","uvi","pop","wind_speed","wind_gust"]],
@@ -521,7 +521,7 @@ if st.session_state.get("plan_ready"):
                     tz_offset = 0
                 df_forecast = df_forecast.copy()
                 dt_f = pd.to_datetime(df_forecast["datetime"], utc=True, errors="coerce")
-                df_forecast["datetime"] = dt_f + pd.to_timedelta(tz_offset, unit="s")
+                df_forecast["datetime"] = (dt_f + pd.to_timedelta(tz_offset, unit="s")).dt.round("H")
 
                 st.dataframe(
                     df_forecast[['datetime','temperature','humidity','condition']].rename(
