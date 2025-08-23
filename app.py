@@ -243,6 +243,70 @@ def build_outfit_plan_pdf_cached(sections, city_name=""):
     return buf.getvalue()
 
 
+
+# ⭐ ADD: auto-correct any city name to a canonical place (global)
+import requests  # local import is fine, but adding here keeps it clear you need requests
+
+@st.cache_data(ttl=24*3600)
+def _normalize_query(q: str) -> str:
+    import re
+    q = (q or "").strip()
+    q = re.sub(r"\s+", " ", q)
+    # strip odd punctuation (keep commas, dots, hyphens)
+    q = re.sub(r"[^\w\s,.\-’'()&/]", "", q)
+    return q
+
+@st.cache_data(ttl=24*3600)
+def geocode_autofix(q: str, api_key: str) -> tuple[str | None, float | None, float | None]:
+    """
+    Return (display_name, lat, lon) for ANY city string, or (None, None, None) if not found.
+    1) OpenWeather Geocoding (primary)
+    2) Nominatim (OpenStreetMap) fallback
+    """
+    qn = _normalize_query(q)
+
+    # --- 1) OpenWeather Geocoding ---
+    try:
+        r = requests.get(
+            "https://api.openweathermap.org/geo/1.0/direct",
+            params={"q": qn, "limit": 1, "appid": api_key},
+            timeout=10,
+        )
+        r.raise_for_status()
+        items = r.json() or []
+        if items:
+            c = items[0]
+            display = ", ".join([p for p in [c.get("name"), c.get("state"), c.get("country")] if p])
+            return display, float(c["lat"]), float(c["lon"])
+    except Exception:
+        pass
+
+    # --- 2) Nominatim fallback (global, very tolerant to variants/misspellings) ---
+    try:
+        r2 = requests.get(
+            "https://nominatim.openstreetmap.org/search",
+            params={"q": qn, "format": "jsonv2", "limit": 1, "addressdetails": 1},
+            headers={"User-Agent": "TempsBot/1.0 (Streamlit app)"},
+            timeout=12,
+        )
+        r2.raise_for_status()
+        items = r2.json() or []
+        if items:
+            c = items[0]
+            lat, lon = float(c["lat"]), float(c["lon"])
+            addr = c.get("address", {})
+            title = addr.get("city") or addr.get("town") or addr.get("village") or c.get("display_name", qn)
+            country = (addr.get("country_code") or "").upper()
+            state = addr.get("state")
+            display = ", ".join([p for p in [title, state, country] if p])
+            return display, lat, lon
+    except Exception:
+        pass
+
+    return None, None, None
+
+
+
 def _inputs_key(city, skin_type_number):
     return hashlib.md5(json.dumps({"city": city, "skin": skin_type_number}).encode("utf-8")).hexdigest()
 
@@ -316,9 +380,20 @@ if submitted:
         st.session_state.inputs_key = _inputs_key(city, skin_type_number)
         st.session_state.include_daily_tips = include_daily_tips
 
-    # 1) Fetch data (cached)
-    data = fetch_weather(city, api_key) or {}
-    df_forecast = fetch_forecast(city, api_key, units=units_mode)
+    # ⭐ ADD: auto-correct the city to a canonical place (works worldwide)
+    display_name, lat, lon = geocode_autofix(city, api_key)
+    if not display_name:
+        st.error("Couldn’t recognize that place. Try adding a country code (e.g., 'Paris, FR').")
+        st.stop()   
+        # keep the canonical label + coords in session (no UI change)
+        city = display_name
+        st.session_state.city = city
+        st.session_state.resolved_lat = lat
+        st.session_state.resolved_lon = lon   
+        # 1) Fetch data (cached) — your existing functions still take the city string
+        data = fetch_weather(city, api_key) or {}
+        df_forecast = fetch_forecast(city, api_key, units=units_mode)
+
 
     # 2) Outfit + GPT summaries
     outfit_today = get_outfit_recommendation(data) if data else "⚠️ Unable to suggest clothing due to invalid weather data."
