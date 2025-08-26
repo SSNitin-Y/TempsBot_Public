@@ -1,7 +1,7 @@
 # TempsBot 
 ## Is a Weather Bot integrated with AI ("Temps" means weather in French).
 
-Live app: [https://share.streamlit.io/… ](https://weatherai-rpmnd2vdjchnbzggsgbqij.streamlit.app/) <!-- paste your Streamlit URL -->
+Live app: [Link](https://tempsbotai.streamlit.app/) <!-- paste your Streamlit URL -->
 
 This repo mirrors the **top-level `app.py`** only, for review/demo.
 The full project (APIs, GPT, color engine, etc.) remains private.
