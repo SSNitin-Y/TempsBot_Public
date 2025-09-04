@@ -649,7 +649,7 @@ if st.session_state.get("plan_ready"):
                     # ====== ✅ END PLOTLY HOURLY CHART ======
 
         else:
-            # Your existing 5-day graph table (UNCHANGED)
+            # Your existing 5-day graph table (UNCHANGED EXCEPT TABLE COLUMNS)
             if df_forecast_json:
                 import pandas as pd
                 import matplotlib.dates as mdates
@@ -666,13 +666,42 @@ if st.session_state.get("plan_ready"):
                 dt_f = pd.to_datetime(df_forecast["datetime"], utc=False, errors="coerce")
                 df_forecast["datetime"] = (dt_f + pd.to_timedelta(tz_offset, unit="s")).dt.floor("H")
 
+                # ▶▶▶ REPLACED TABLE: include PoP % and UVI if present, keep same UI
+                temp_col_label = "Temp (°C)" if units_mode == "metric" else "Temp (°F)"
+                df_display = df_forecast.copy()
+
+                # Ensure numeric for formatting
+                for c in ["temperature", "humidity", "pop", "uvi"]:
+                    if c in df_display.columns:
+                        df_display[c] = pd.to_numeric(df_display[c], errors="coerce")
+
+                # Format PoP as %
+                if "pop" in df_display.columns:
+                    df_display["pop"] = (df_display["pop"].clip(0, 1) * 100).round(0)
+
+                # Round humidity and temperature for readability
+                if "humidity" in df_display.columns:
+                    df_display["humidity"] = df_display["humidity"].round(0)
+                if "temperature" in df_display.columns:
+                    df_display["temperature"] = df_display["temperature"].round(1)
+
+                ordered_cols = [
+                    ("datetime", "Date/Time"),
+                    ("temperature", temp_col_label),
+                    ("humidity", "Humidity %"),
+                    ("pop", "PoP %"),
+                    ("uvi", "UVI"),
+                    ("condition", "Condition"),
+                ]
+                keep = [c for c, _ in ordered_cols if c in df_display.columns]
+                rename_map = {c: label for c, label in ordered_cols if c in keep}
+
                 st.dataframe(
-                    df_forecast[['datetime','temperature','humidity','condition']].rename(
-                        columns={'datetime':'Date/Time','temperature':'Temp °C','humidity':'Humidity %','condition':'Condition'}
-                    ),
+                    df_display[keep].rename(columns=rename_map),
                     use_container_width=True,
                     hide_index=True
                 )
+                # ▶▶▶ END REPLACED TABLE
 
                 # ====== ✅ NEW: INTERACTIVE PLOTLY 5-DAY CHART (Temp left; Humidity right) ======
                 dfp5 = df_forecast.copy()
