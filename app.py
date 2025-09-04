@@ -33,7 +33,7 @@ try:
 except Exception:
     REPORTLAB_OK = False
 
-from datetime import datetime
+from datetime import datetime, timedelta  # ⭐ ADDED timedelta
 
 # ⭐ NEW: We'll import pandas & date formatter only where needed to minimize global changes
 # (kept as-is at top level for your original style)
@@ -666,6 +666,19 @@ if st.session_state.get("plan_ready"):
                 dt_f = pd.to_datetime(df_forecast["datetime"], utc=False, errors="coerce")
                 df_forecast["datetime"] = (dt_f + pd.to_timedelta(tz_offset, unit="s")).dt.floor("H")
 
+                # ⭐ ADD: synthesize 'uvi' per day from data['uv_next5'] if the column is missing
+                if "uvi" not in df_forecast.columns:
+                    uv5 = data.get("uv_next5") or []
+                    if uv5:
+                        start_date = df_forecast["datetime"].min().date()
+                        date_to_uvi = {
+                            (start_date + timedelta(days=i)): (
+                                float(uv5[i]) if i < len(uv5) and uv5[i] is not None else None
+                            )
+                            for i in range(5)
+                        }
+                        df_forecast["uvi"] = df_forecast["datetime"].dt.date.map(date_to_uvi)
+
                 # ▶▶▶ REPLACED TABLE: include PoP % and UVI if present, keep same UI
                 temp_col_label = "Temp (°C)" if units_mode == "metric" else "Temp (°F)"
                 df_display = df_forecast.copy()
@@ -684,6 +697,8 @@ if st.session_state.get("plan_ready"):
                     df_display["humidity"] = df_display["humidity"].round(0)
                 if "temperature" in df_display.columns:
                     df_display["temperature"] = df_display["temperature"].round(1)
+                if "uvi" in df_display.columns:
+                    df_display["uvi"] = df_display["uvi"].round(1)
 
                 ordered_cols = [
                     ("datetime", "Date/Time"),
@@ -906,6 +921,7 @@ social-icon { vertical-align:middle; margin-right:6px; }
   </div>
 </div>
 """, unsafe_allow_html=True)
+
 
 
 
