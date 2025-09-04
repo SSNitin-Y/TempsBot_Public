@@ -578,6 +578,7 @@ if st.session_state.get("plan_ready"):
                             )
                         )
 
+                    # ► Styling: black axes/labels + legend; grid stays light gray
                     fig.update_layout(
                         height=420,
                         margin=dict(l=10, r=10, t=40, b=35),
@@ -601,6 +602,9 @@ if st.session_state.get("plan_ready"):
                             spikedash="dot",
                             spikecolor="rgba(0,0,0,0.3)",
                             spikethickness=1,
+                            showline=True, linecolor="black", mirror=True,
+                            tickfont=dict(color="black"), titlefont=dict(color="black"),
+                            ticks="outside", tickcolor="black",
                         ),
                         yaxis=dict(
                             title=temp_label if "temp" in dfp.columns else "Temperature",
@@ -610,6 +614,9 @@ if st.session_state.get("plan_ready"):
                             zerolinecolor="rgba(0,0,0,0.2)",
                             showgrid=True,
                             gridcolor="rgba(0,0,0,0.1)",
+                            showline=True, linecolor="black", mirror=True,
+                            tickfont=dict(color="black"), titlefont=dict(color="black"),
+                            ticks="outside", tickcolor="black",
                         ),
                         yaxis2=dict(
                             title="Precip / UVI (%)",
@@ -620,8 +627,19 @@ if st.session_state.get("plan_ready"):
                             zeroline=True,
                             zerolinecolor="rgba(0,0,0,0.2)",
                             showgrid=False,
+                            showline=True, linecolor="black", mirror=True,
+                            tickfont=dict(color="black"), titlefont=dict(color="black"),
+                            ticks="outside", tickcolor="black",
                         ),
-                        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+                        legend=dict(
+                            orientation="h",
+                            yanchor="bottom", y=1.02,
+                            xanchor="right", x=1,
+                            bgcolor="white",
+                            bordercolor="black",
+                            borderwidth=0,
+                            font=dict(color="black"),
+                        ),
                         plot_bgcolor="white",
                         paper_bgcolor="white",
                     )
@@ -636,7 +654,7 @@ if st.session_state.get("plan_ready"):
                 import matplotlib.dates as mdates
                 df_forecast = pd.read_json(df_forecast_json)
 
-                # ⭐ keep as you had it previously for 5-day (no functional change requested)
+                # ⭐ keep as you had it previously for 5-day (no functional change requested for the table)
                 try:
                     coord = data.get("coord") or {}
                     lat, lon = coord.get("lat"), coord.get("lon")
@@ -654,18 +672,107 @@ if st.session_state.get("plan_ready"):
                     use_container_width=True,
                     hide_index=True
                 )
-                fig, ax1 = plt.subplots(figsize=(10, 4))
-                ax2 = ax1.twinx()
-                ax1.plot(df_forecast['datetime'], df_forecast['temperature'], 'r-', label='Temp (°C)')
-                ax2.plot(df_forecast['datetime'], df_forecast['humidity'], 'b--', label='Humidity (%)')
-                ax1.set_xlabel('Date & Time')
-                ax1.set_ylabel('Temp (°C)', color='r')
-                ax2.set_ylabel('Humidity (%)', color='b')
-                ax1.xaxis.set_major_formatter(mdates.DateFormatter("%a %H:%M"))
-                fig.autofmt_xdate()
-                ax1.tick_params(axis='x', rotation=45)
-                fig.tight_layout()
-                st.pyplot(fig)
+
+                # ====== ✅ NEW: INTERACTIVE PLOTLY 5-DAY CHART (Temp left; Humidity right) ======
+                dfp5 = df_forecast.copy()
+                dfp5["temperature"] = pd.to_numeric(dfp5["temperature"], errors="coerce")
+                dfp5["humidity"] = pd.to_numeric(dfp5["humidity"], errors="coerce")
+
+                fig5 = go.Figure()
+                temp_label_5 = "Temp (°C)" if units_mode == "metric" else "Temp (°F)"
+
+                # Temperature (left)
+                fig5.add_trace(
+                    go.Scatter(
+                        x=dfp5["datetime"],
+                        y=dfp5["temperature"],
+                        name=temp_label_5,
+                        mode="lines+markers",
+                        line=dict(width=2),
+                        marker=dict(size=5),
+                        hovertemplate="<b>%{x|%a %b %d • %H:%M}</b><br>" + temp_label_5 + ": %{y:.1f}<extra></extra>",
+                        yaxis="y",
+                    )
+                )
+
+                # Humidity (right)
+                fig5.add_trace(
+                    go.Scatter(
+                        x=dfp5["datetime"],
+                        y=dfp5["humidity"],
+                        name="Humidity (%)",
+                        mode="lines+markers",
+                        line=dict(width=2, dash="dash"),
+                        marker=dict(size=5),
+                        hovertemplate="<b>%{x|%a %b %d • %H:%M}</b><br>Humidity: %{y:.0f}%<extra></extra>",
+                        yaxis="y2",
+                    )
+                )
+
+                # Axis ranges for temperature padding
+                try:
+                    tmin5 = float(np.nanmin(dfp5["temperature"]))
+                except Exception:
+                    tmin5 = None
+                try:
+                    tmax5 = float(np.nanmax(dfp5["temperature"]))
+                except Exception:
+                    tmax5 = None
+                pad5 = (tmax5 - tmin5) * 0.1 if (tmin5 is not None and tmax5 is not None and tmax5 > tmin5) else 2.0
+                yrange_left_5 = [tmin5 - pad5, tmax5 + pad5] if (tmin5 is not None and tmax5 is not None) else None
+
+                fig5.update_layout(
+                    height=420,
+                    margin=dict(l=10, r=10, t=40, b=35),
+                    hovermode="x unified",
+                    xaxis=dict(
+                        title=None,
+                        showgrid=True,
+                        gridcolor="rgba(0,0,0,0.12)",
+                        tickformat="%a %H:%M",
+                        showline=True, linecolor="black", mirror=True,
+                        tickfont=dict(color="black"), titlefont=dict(color="black"),
+                        ticks="outside", tickcolor="black",
+                    ),
+                    yaxis=dict(
+                        title=temp_label_5,
+                        range=yrange_left_5,
+                        zeroline=True,
+                        zerolinecolor="rgba(0,0,0,0.2)",
+                        showgrid=True,
+                        gridcolor="rgba(0,0,0,0.1)",
+                        showline=True, linecolor="black", mirror=True,
+                        tickfont=dict(color="black"), titlefont=dict(color="black"),
+                        ticks="outside", tickcolor="black",
+                    ),
+                    yaxis2=dict(
+                        title="Humidity (%)",
+                        range=[0, 100],
+                        ticksuffix="%",
+                        overlaying="y",
+                        side="right",
+                        zeroline=True,
+                        zerolinecolor="rgba(0,0,0,0.2)",
+                        showgrid=False,
+                        showline=True, linecolor="black", mirror=True,
+                        tickfont=dict(color="black"), titlefont=dict(color="black"),
+                        ticks="outside", tickcolor="black",
+                    ),
+                    legend=dict(
+                        orientation="h",
+                        yanchor="bottom", y=1.02,
+                        xanchor="right", x=1,
+                        bgcolor="white",
+                        bordercolor="black",
+                        borderwidth=0,
+                        font=dict(color="black"),
+                    ),
+                    plot_bgcolor="white",
+                    paper_bgcolor="white",
+                )
+
+                st.plotly_chart(fig5, use_container_width=True, theme="streamlit")
+                # ====== ✅ END PLOTLY 5-DAY CHART ======
             else:
                 st.warning("⚠️ Forecast data unavailable.")
 
