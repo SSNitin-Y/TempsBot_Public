@@ -38,6 +38,10 @@ from datetime import datetime
 # ⭐ NEW: We'll import pandas & date formatter only where needed to minimize global changes
 # (kept as-is at top level for your original style)
 
+# --- Plotly (interactive hourly graphs) ---  ✅ NEW
+import plotly.graph_objects as go
+import numpy as np
+
 # --- UI tweak: keep long select values inside the borders ---
 st.markdown("""
 <style>
@@ -498,22 +502,133 @@ if st.session_state.get("plan_ready"):
                         use_container_width=True, hide_index=True
                     )
 
-                    # Mini charts: use the hour labels on x-axis
-                    fig1, ax1 = plt.subplots(figsize=(8, 2.8))
-                    ax1.plot(df_hourly["datetime_label"], df_hourly["temp"])
-                    ax1.set_ylabel("Temp")
-                    ax1.xaxis.set_major_formatter(mdates.DateFormatter("%a %H:%M"))
-                    fig1.autofmt_xdate()
-                    ax1.tick_params(axis='x', rotation=45)
-                    st.pyplot(fig1)
+                    # ====== ✅ NEW: INTERACTIVE PLOTLY HOURLY CHART (Temp + PoP% + UVI) ======
+                    dfp = df_hourly.copy()
 
-                    fig2, ax2 = plt.subplots(figsize=(8, 2.4))
-                    ax2.plot(df_hourly["datetime_label"], df_hourly["pop"], linestyle="--")
-                    ax2.set_ylabel("Probability of Precipitation (0–1)")
-                    ax2.xaxis.set_major_formatter(mdates.DateFormatter("%a %H:%M"))
-                    fig2.autofmt_xdate()
-                    ax2.tick_params(axis='x', rotation=45)
-                    st.pyplot(fig2)
+                    # Ensure numeric
+                    for col in ["temp", "pop", "uvi"]:
+                        if col in dfp.columns:
+                            dfp[col] = pd.to_numeric(dfp[col], errors="coerce")
+
+                    # PoP to 0–100%
+                    if "pop" in dfp.columns:
+                        dfp["pop_pct"] = (dfp["pop"].clip(lower=0, upper=1) * 100.0)
+                    else:
+                        dfp["pop_pct"] = np.nan
+
+                    # Scale UVI to 0–100 so it can share the right axis with PoP%
+                    uvi_max = float(np.nanmax(dfp["uvi"])) if "uvi" in dfp.columns else 0.0
+                    baseline = max(11.0, uvi_max if np.isfinite(uvi_max) else 0.0)
+                    scale = (100.0 / baseline) if baseline > 0 else 0.0
+                    dfp["uvi_pct"] = (dfp["uvi"] * scale) if scale > 0 else np.nan
+
+                    fig = go.Figure()
+
+                    # Temp (left axis)
+                    temp_label = "Temp (°C)" if units_mode == "metric" else "Temp (°F)"
+                    if "temp" in dfp.columns:
+                        tmin = float(np.nanmin(dfp["temp"])) if np.isfinite(np.nanmin(dfp["temp"])) else None
+                        tmax = float(np.nanmax(dfp["temp"])) if np.isfinite(np.nanmax(dfp["temp"])) else None
+                        pad = (tmax - tmin) * 0.1 if (tmin is not None and tmax is not None and tmax > tmin) else 2.0
+                        yrange_left = [tmin - pad, tmax + pad] if (tmin is not None and tmax is not None) else None
+
+                        fig.add_trace(
+                            go.Scatter(
+                                x=dfp["datetime_label"],
+                                y=dfp["temp"],
+                                name=temp_label,
+                                mode="lines+markers",
+                                line=dict(width=2),
+                                marker=dict(size=5),
+                                hovertemplate="<b>%{x|%a %b %d • %H:%M}</b><br>" + temp_label + ": %{y:.1f}<extra></extra>",
+                                yaxis="y",
+                            )
+                        )
+                    else:
+                        yrange_left = None
+
+                    # PoP% (right axis)
+                    if "pop_pct" in dfp.columns:
+                        fig.add_trace(
+                            go.Scatter(
+                                x=dfp["datetime_label"],
+                                y=dfp["pop_pct"],
+                                name="Precip prob (%)",
+                                mode="lines+markers",
+                                line=dict(width=2, dash="dash"),
+                                marker=dict(size=5),
+                                hovertemplate="<b>%{x|%a %b %d • %H:%M}</b><br>Precip prob: %{y:.0f}%<extra></extra>",
+                                yaxis="y2",
+                            )
+                        )
+
+                    # UVI (right axis, scaled)
+                    if "uvi_pct" in dfp.columns:
+                        fig.add_trace(
+                            go.Scatter(
+                                x=dfp["datetime_label"],
+                                y=dfp["uvi_pct"],
+                                name=f"UVI (scaled to %; max={int(max(11, uvi_max))})",
+                                mode="lines+markers",
+                                line=dict(width=2, dash="dot"),
+                                marker=dict(size=5),
+                                hovertemplate="<b>%{x|%a %b %d • %H:%M}</b><br>UVI: %{customdata:.1f}<extra></extra>",
+                                customdata=dfp["uvi"],
+                                yaxis="y2",
+                            )
+                        )
+
+                    fig.update_layout(
+                        height=420,
+                        margin=dict(l=10, r=10, t=40, b=35),
+                        hovermode="x unified",
+                        xaxis=dict(
+                            title=None,
+                            showgrid=True,
+                            gridcolor="rgba(0,0,0,0.12)",
+                            tickformat="%a %H:%M",
+                            rangeslider=dict(visible=True, thickness=0.08),
+                            rangeselector=dict(
+                                buttons=[
+                                    dict(count=6, label="6h", step="hour", stepmode="backward"),
+                                    dict(count=12, label="12h", step="hour", stepmode="backward"),
+                                    dict(count=24, label="24h", step="hour", stepmode="backward"),
+                                    dict(step="all"),
+                                ]
+                            ),
+                            spikemode="across",
+                            showspikes=True,
+                            spikedash="dot",
+                            spikecolor="rgba(0,0,0,0.3)",
+                            spikethickness=1,
+                        ),
+                        yaxis=dict(
+                            title=temp_label if "temp" in dfp.columns else "Temperature",
+                            rangemode="tozero" if yrange_left is None else None,
+                            range=yrange_left,
+                            zeroline=True,
+                            zerolinecolor="rgba(0,0,0,0.2)",
+                            showgrid=True,
+                            gridcolor="rgba(0,0,0,0.1)",
+                        ),
+                        yaxis2=dict(
+                            title="Precip / UVI (%)",
+                            range=[0, 100],
+                            ticksuffix="%",
+                            overlaying="y",
+                            side="right",
+                            zeroline=True,
+                            zerolinecolor="rgba(0,0,0,0.2)",
+                            showgrid=False,
+                        ),
+                        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+                        plot_bgcolor="white",
+                        paper_bgcolor="white",
+                    )
+
+                    st.plotly_chart(fig, use_container_width=True, theme="streamlit")
+                    # ====== ✅ END PLOTLY HOURLY CHART ======
+
         else:
             # Your existing 5-day graph table (UNCHANGED)
             if df_forecast_json:
@@ -654,6 +769,7 @@ st.markdown("""
   </div>
 </div>
 """, unsafe_allow_html=True)
+
 
 
 
