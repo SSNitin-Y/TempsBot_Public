@@ -584,7 +584,7 @@ if st.session_state.get("plan_ready"):
                         margin=dict(l=10, r=10, t=40, b=35),
                         hovermode="x unified",
                         xaxis=dict(
-                            title=None,
+                            title=dict(font=dict(color="black")),
                             showgrid=True,
                             gridcolor="rgba(0,0,0,0.12)",
                             tickformat="%a %H:%M",
@@ -603,11 +603,12 @@ if st.session_state.get("plan_ready"):
                             spikecolor="rgba(0,0,0,0.3)",
                             spikethickness=1,
                             showline=True, linecolor="black", mirror=True,
-                            tickfont=dict(color="black"), titlefont=dict(color="black"),
+                            tickfont=dict(color="black"),
                             ticks="outside", tickcolor="black",
                         ),
                         yaxis=dict(
-                            title=temp_label if "temp" in dfp.columns else "Temperature",
+                            title=dict(text=(temp_label if "temp" in dfp.columns else "Temperature"),
+                                       font=dict(color="black")),
                             rangemode="tozero" if yrange_left is None else None,
                             range=yrange_left,
                             zeroline=True,
@@ -615,11 +616,11 @@ if st.session_state.get("plan_ready"):
                             showgrid=True,
                             gridcolor="rgba(0,0,0,0.1)",
                             showline=True, linecolor="black", mirror=True,
-                            tickfont=dict(color="black"), titlefont=dict(color="black"),
+                            tickfont=dict(color="black"),
                             ticks="outside", tickcolor="black",
                         ),
                         yaxis2=dict(
-                            title="Precip / UVI (%)",
+                            title=dict(text="Precip / UVI (%)", font=dict(color="black")),
                             range=[0, 100],
                             ticksuffix="%",
                             overlaying="y",
@@ -628,7 +629,7 @@ if st.session_state.get("plan_ready"):
                             zerolinecolor="rgba(0,0,0,0.2)",
                             showgrid=False,
                             showline=True, linecolor="black", mirror=True,
-                            tickfont=dict(color="black"), titlefont=dict(color="black"),
+                            tickfont=dict(color="black"),
                             ticks="outside", tickcolor="black",
                         ),
                         legend=dict(
@@ -726,27 +727,27 @@ if st.session_state.get("plan_ready"):
                     margin=dict(l=10, r=10, t=40, b=35),
                     hovermode="x unified",
                     xaxis=dict(
-                        title=None,
+                        title=dict(font=dict(color="black")),
                         showgrid=True,
                         gridcolor="rgba(0,0,0,0.12)",
                         tickformat="%a %H:%M",
                         showline=True, linecolor="black", mirror=True,
-                        tickfont=dict(color="black"), titlefont=dict(color="black"),
+                        tickfont=dict(color="black"),
                         ticks="outside", tickcolor="black",
                     ),
                     yaxis=dict(
-                        title=temp_label_5,
+                        title=dict(text=temp_label_5, font=dict(color="black")),
                         range=yrange_left_5,
                         zeroline=True,
                         zerolinecolor="rgba(0,0,0,0.2)",
                         showgrid=True,
                         gridcolor="rgba(0,0,0,0.1)",
                         showline=True, linecolor="black", mirror=True,
-                        tickfont=dict(color="black"), titlefont=dict(color="black"),
+                        tickfont=dict(color="black"),
                         ticks="outside", tickcolor="black",
                     ),
                     yaxis2=dict(
-                        title="Humidity (%)",
+                        title=dict(text="Humidity (%)", font=dict(color="black")),
                         range=[0, 100],
                         ticksuffix="%",
                         overlaying="y",
@@ -755,7 +756,7 @@ if st.session_state.get("plan_ready"):
                         zerolinecolor="rgba(0,0,0,0.2)",
                         showgrid=False,
                         showline=True, linecolor="black", mirror=True,
-                        tickfont=dict(color="black"), titlefont=dict(color="black"),
+                        tickfont=dict(color="black"),
                         ticks="outside", tickcolor="black",
                     ),
                     legend=dict(
@@ -847,7 +848,7 @@ st.markdown("""
 .footer-container { text-align:center; font-size:0.9em; line-height:1.6; }
 .social-link { text-decoration:none; color:inherit; }
 .social-link:hover { color:#00A37A !important; }
-.social-icon { vertical-align:middle; margin-right:6px; }
+social-icon { vertical-align:middle; margin-right:6px; }
 .social-row { display:flex; justify-content:center; gap:24px; flex-wrap:wrap; margin:6px 0 12px 0; }
 </style>
 
