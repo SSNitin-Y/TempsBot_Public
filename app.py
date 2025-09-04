@@ -33,11 +33,21 @@ try:
 except Exception:
     REPORTLAB_OK = False
 
-from datetime import datetime, timedelta  # ← include timedelta (safe; used if UVI mapping needed)
+from datetime import datetime, timedelta
 
-# --- Plotly (interactive hourly graphs) ---  ✅
+# --- Plotly (interactive hourly graphs) ---
 import plotly.graph_objects as go
 import numpy as np
+
+# ✅ NEW: constant series colors (used in both charts)
+SERIES_COLORS = {
+    "temp":       "#E53935",  # red
+    "humidity":   "#3949AB",  # indigo
+    "pop_pct":    "#1E88E5",  # blue
+    "uvi_pct":    "#FB8C00",  # orange
+    "wind_speed": "#43A047",  # green
+    "wind_gust":  "#6A1B9A",  # purple
+}
 
 # --- UI tweak: keep long select values inside the borders ---
 st.markdown("""
@@ -139,7 +149,7 @@ def cached_gpt_summary(payload: dict):
 def cached_daily_tip(date_text: str, outfit_text: str, color_labels: list[str]) -> str:
     return generate_daily_outfit_summary(date_text, outfit_text, color_labels)
 
-# ⭐ small helper to get city timezone offset (seconds) from OpenWeather
+# small helper to get city timezone offset (seconds) from OpenWeather
 @st.cache_data(ttl=3600)
 def get_tz_offset_seconds(lat: float, lon: float, api_key: str) -> int:
     """
@@ -474,7 +484,7 @@ if st.session_state.get("plan_ready"):
                 if df_hourly.empty:
                     st.info("No hourly data available.")
                 else:
-                    # ⭐ robust UTC parse → shift → drop tz; separate label column floored to hour
+                    # robust UTC parse → shift → drop tz; separate label column floored to hour
                     import pandas as pd
                     import matplotlib.dates as mdates
                     try:
@@ -498,7 +508,7 @@ if st.session_state.get("plan_ready"):
                         use_container_width=True, hide_index=True
                     )
 
-                    # ====== ✅ CHECKBOX CONTROLS (HOURLY) ======
+                    # ====== CHECKBOX CONTROLS (HOURLY) ======
                     st.markdown("**Show series (hourly):**")
                     cols_h = st.columns(5)
                     cb_h_temp = cols_h[0].checkbox("Temp", True, key="h_cb_temp")
@@ -512,7 +522,7 @@ if st.session_state.get("plan_ready"):
                     ] if on]
                     # ==========================================
 
-                    # ====== Plotly HOURLY CHART (driven by checkboxes) ======
+                    # ====== Plotly HOURLY CHART ======
                     dfp = df_hourly.copy()
 
                     # Ensure numeric
@@ -551,13 +561,14 @@ if st.session_state.get("plan_ready"):
                     else:
                         yrange_left = None
 
-                    # Add traces conditionally
+                    # Add traces conditionally (with constant colors)
                     if "Temp" in selected_hourly and "temp" in dfp.columns:
                         fig.add_trace(
                             go.Scatter(
                                 x=dfp["datetime_label"], y=dfp["temp"],
                                 name=temp_label, mode="lines+markers",
-                                line=dict(width=2), marker=dict(size=5),
+                                line=dict(color=SERIES_COLORS["temp"], width=2),
+                                marker=dict(size=5),
                                 hovertemplate="<b>%{x|%a %b %d • %H:%M}</b><br>" + temp_label + ": %{y:.1f}<extra></extra>",
                                 yaxis="y",
                             )
@@ -568,7 +579,9 @@ if st.session_state.get("plan_ready"):
                             go.Scatter(
                                 x=dfp["datetime_label"], y=dfp["wind_speed"],
                                 name=f"Wind speed ({wind_unit})",
-                                mode="lines+markers", line=dict(width=2, dash="dot"), marker=dict(size=5),
+                                mode="lines+markers",
+                                line=dict(color=SERIES_COLORS["wind_speed"], width=2, dash="dot"),
+                                marker=dict(size=5),
                                 hovertemplate="<b>%{x|%a %b %d • %H:%M}</b><br>Wind speed: %{y:.1f} "+wind_unit+"<extra></extra>",
                                 yaxis="y",
                             )
@@ -579,7 +592,9 @@ if st.session_state.get("plan_ready"):
                             go.Scatter(
                                 x=dfp["datetime_label"], y=dfp["wind_gust"],
                                 name=f"Wind gust ({wind_unit})",
-                                mode="lines+markers", line=dict(width=2, dash="dash"), marker=dict(size=5),
+                                mode="lines+markers",
+                                line=dict(color=SERIES_COLORS["wind_gust"], width=2, dash="dash"),
+                                marker=dict(size=5),
                                 hovertemplate="<b>%{x|%a %b %d • %H:%M}</b><br>Wind gust: %{y:.1f} "+wind_unit+"<extra></extra>",
                                 yaxis="y",
                             )
@@ -589,7 +604,9 @@ if st.session_state.get("plan_ready"):
                             go.Scatter(
                                 x=dfp["datetime_label"], y=dfp["pop_pct"],
                                 name="Precip prob (%)",
-                                mode="lines+markers", line=dict(width=2), marker=dict(size=5),
+                                mode="lines+markers",
+                                line=dict(color=SERIES_COLORS["pop_pct"], width=2),
+                                marker=dict(size=5),
                                 hovertemplate="<b>%{x|%a %b %d • %H:%M}</b><br>Precip prob: %{y:.0f}%<extra></extra>",
                                 yaxis="y2",
                             )
@@ -599,7 +616,9 @@ if st.session_state.get("plan_ready"):
                             go.Scatter(
                                 x=dfp["datetime_label"], y=dfp["uvi_pct"],
                                 name=f"UVI (scaled to %; max={int(max(11, uvi_max))})",
-                                mode="lines+markers", line=dict(width=2, dash="dot"), marker=dict(size=5),
+                                mode="lines+markers",
+                                line=dict(color=SERIES_COLORS["uvi_pct"], width=2, dash="dot"),
+                                marker=dict(size=5),
                                 hovertemplate="<b>%{x|%a %b %d • %H:%M}</b><br>UVI: %{customdata:.1f}<extra></extra>",
                                 customdata=dfp["uvi"], yaxis="y2",
                             )
@@ -671,10 +690,10 @@ if st.session_state.get("plan_ready"):
                     )
 
                     st.plotly_chart(fig, use_container_width=True, theme="streamlit")
-                    # ====== ✅ END HOURLY CHART ======
+                    # ====== END HOURLY CHART ======
 
         else:
-            # Your existing 5-day graph table (Condition kept in the TABLE; not plotted)
+            # 5-day (Condition kept in table; not plotted)
             if df_forecast_json:
                 import pandas as pd
                 import matplotlib.dates as mdates
@@ -704,7 +723,7 @@ if st.session_state.get("plan_ready"):
                         }
                         df_forecast["uvi"] = df_forecast["datetime"].dt.date.map(date_to_uvi)
 
-                # ===== TABLE (Condition INCLUDED; as requested) =====
+                # ===== TABLE (Condition INCLUDED) =====
                 temp_col_label = "Temp (°C)" if units_mode == "metric" else "Temp (°F)"
                 df_display = df_forecast.copy()
 
@@ -731,7 +750,7 @@ if st.session_state.get("plan_ready"):
                     ("humidity", "Humidity %"),
                     ("pop", "PoP %"),
                     ("uvi", "UVI"),
-                    ("condition", "Condition"),  # ✅ kept in table
+                    ("condition", "Condition"),
                 ]
                 keep = [c for c, _ in ordered_cols if c in df_display.columns]
                 rename_map = {c: label for c, label in ordered_cols if c in keep}
@@ -743,7 +762,7 @@ if st.session_state.get("plan_ready"):
                 )
                 # ===== END TABLE =====
 
-                # ====== ✅ CHECKBOX CONTROLS (5-DAY) ======
+                # ====== CHECKBOX CONTROLS (5-DAY) ======
                 st.markdown("**Show series (5 days):**")
                 cols5 = st.columns(4)
                 cb5_temp = cols5[0].checkbox("Temp", True, key="d5_cb_temp")
@@ -755,7 +774,7 @@ if st.session_state.get("plan_ready"):
                 ] if on]
                 # ==========================================
 
-                # ====== Plotly 5-DAY CHART (Condition not plotted) ======
+                # ====== Plotly 5-DAY CHART (constant colors) ======
                 dfp5 = df_forecast.copy()
                 dfp5["temperature"] = pd.to_numeric(dfp5.get("temperature"), errors="coerce")
                 if "humidity" in dfp5.columns:
@@ -792,7 +811,7 @@ if st.session_state.get("plan_ready"):
                             y=dfp5["temperature"],
                             name=temp_label_5,
                             mode="lines+markers",
-                            line=dict(width=2),
+                            line=dict(color=SERIES_COLORS["temp"], width=2),
                             marker=dict(size=5),
                             hovertemplate="<b>%{x|%a %b %d • %H:%M}</b><br>" + temp_label_5 + ": %{y:.1f}<extra></extra>",
                             yaxis="y",
@@ -805,7 +824,7 @@ if st.session_state.get("plan_ready"):
                             y=dfp5["humidity"],
                             name="Humidity (%)",
                             mode="lines+markers",
-                            line=dict(width=2, dash="dash"),
+                            line=dict(color=SERIES_COLORS["humidity"], width=2, dash="dash"),
                             marker=dict(size=5),
                             hovertemplate="<b>%{x|%a %b %d • %H:%M}</b><br>Humidity: %{y:.0f}%<extra></extra>",
                             yaxis="y2",
@@ -818,7 +837,7 @@ if st.session_state.get("plan_ready"):
                             y=dfp5["pop_pct"],
                             name="Precip prob (%)",
                             mode="lines+markers",
-                            line=dict(width=2),
+                            line=dict(color=SERIES_COLORS["pop_pct"], width=2),
                             marker=dict(size=5),
                             hovertemplate="<b>%{x|%a %b %d • %H:%M}</b><br>Precip prob: %{y:.0f}%<extra></extra>",
                             yaxis="y2",
@@ -831,7 +850,7 @@ if st.session_state.get("plan_ready"):
                             y=dfp5["uvi_pct"],
                             name=f"UVI (scaled to %; max={int(max(11, baseline5))})",
                             mode="lines+markers",
-                            line=dict(width=2, dash="dot"),
+                            line=dict(color=SERIES_COLORS["uvi_pct"], width=2, dash="dot"),
                             marker=dict(size=5),
                             hovertemplate="<b>%{x|%a %b %d • %H:%M}</b><br>UVI: %{customdata:.1f}<extra></extra>",
                             customdata=dfp5.get("uvi"),
@@ -892,7 +911,7 @@ if st.session_state.get("plan_ready"):
                 )
 
                 st.plotly_chart(fig5, use_container_width=True, theme="streamlit")
-                # ====== ✅ END 5-DAY CHART ======
+                # ====== END 5-DAY CHART ======
             else:
                 st.warning("⚠️ Forecast data unavailable.")
 
@@ -993,7 +1012,6 @@ social-icon { vertical-align:middle; margin-right:6px; }
   </div>
 </div>
 """, unsafe_allow_html=True)
-
 
 
 
