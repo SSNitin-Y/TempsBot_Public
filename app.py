@@ -382,7 +382,7 @@ if submitted:
             try:
                 tip = cached_daily_tip(date, outfit_text, labels)
             except Exception:
-                tip = "Style tip: pair thoughtfully and stay weather‑smart."
+                tip = "Style tip: pair thoughtfully and stay weather-smart."
         else:
             tip = ""
         daily_gpt_tips.append(tip)
@@ -474,45 +474,54 @@ if st.session_state.get("plan_ready"):
                 if df_hourly.empty:
                     st.info("No hourly data available.")
                 else:
-                    # ⭐ NEW: convert UTC → city local time using OpenWeather timezone_offset
+                    # ⭐ CHANGED ONLY HERE: robust UTC parse → shift → drop tz; separate label column floored to hour
                     import pandas as pd
                     import matplotlib.dates as mdates
                     try:
                         tz_offset = get_tz_offset_seconds(lat, lon, st.secrets["OPENWEATHER_API_KEY"])
                     except Exception:
                         tz_offset = 0
-                    df_hourly = df_hourly.copy()
-                    dt_h = pd.to_datetime(df_hourly["datetime"], utc=False, errors="coerce")
-                    df_hourly["datetime"] = (dt_h + pd.to_timedelta(tz_offset, unit="s")).dt.floor("H")
 
+                    df_hourly = df_hourly.copy()
+                    # Parse as UTC, add city offset to get local, drop tz for plotting
+                    dt_h = pd.to_datetime(df_hourly["datetime"], utc=True, errors="coerce")
+                    local_dt = (dt_h + pd.to_timedelta(tz_offset, unit="s")).dt.tz_localize(None)
+
+                    # Keep true local timestamps but make a floored label column for neat :00 display
+                    df_hourly["datetime"] = local_dt
+                    df_hourly["datetime_label"] = df_hourly["datetime"].dt.floor("H")
+
+                    # Table uses the neat labels
                     st.dataframe(
-                        df_hourly[["datetime","temp","uvi","pop","wind_speed","wind_gust"]],
+                        df_hourly[["datetime_label","temp","uvi","pop","wind_speed","wind_gust"]]
+                          .rename(columns={"datetime_label":"datetime"}),
                         use_container_width=True, hide_index=True
                     )
-                    # Mini charts: temp & PoP
+
+                    # Mini charts: use the hour labels on x-axis
                     fig1, ax1 = plt.subplots(figsize=(8, 2.8))
-                    ax1.plot(df_hourly["datetime"], df_hourly["temp"])
+                    ax1.plot(df_hourly["datetime_label"], df_hourly["temp"])
                     ax1.set_ylabel("Temp")
-                    ax1.xaxis.set_major_formatter(mdates.DateFormatter("%a %H:%M"))  # ⭐ NEW
-                    fig1.autofmt_xdate()  # ⭐ NEW
+                    ax1.xaxis.set_major_formatter(mdates.DateFormatter("%a %H:%M"))
+                    fig1.autofmt_xdate()
                     ax1.tick_params(axis='x', rotation=45)
                     st.pyplot(fig1)
 
                     fig2, ax2 = plt.subplots(figsize=(8, 2.4))
-                    ax2.plot(df_hourly["datetime"], df_hourly["pop"], linestyle="--")
+                    ax2.plot(df_hourly["datetime_label"], df_hourly["pop"], linestyle="--")
                     ax2.set_ylabel("Probability of Precipitation (0–1)")
-                    ax2.xaxis.set_major_formatter(mdates.DateFormatter("%a %H:%M"))  # ⭐ NEW
-                    fig2.autofmt_xdate()  # ⭐ NEW
+                    ax2.xaxis.set_major_formatter(mdates.DateFormatter("%a %H:%M"))
+                    fig2.autofmt_xdate()
                     ax2.tick_params(axis='x', rotation=45)
                     st.pyplot(fig2)
         else:
-            # Your existing 5-day graph table
+            # Your existing 5-day graph table (UNCHANGED)
             if df_forecast_json:
                 import pandas as pd
                 import matplotlib.dates as mdates
                 df_forecast = pd.read_json(df_forecast_json)
 
-                # ⭐ NEW: convert UTC → city local time using OpenWeather timezone_offset
+                # ⭐ keep as you had it previously for 5-day (no functional change requested)
                 try:
                     coord = data.get("coord") or {}
                     lat, lon = coord.get("lat"), coord.get("lon")
@@ -537,8 +546,8 @@ if st.session_state.get("plan_ready"):
                 ax1.set_xlabel('Date & Time')
                 ax1.set_ylabel('Temp (°C)', color='r')
                 ax2.set_ylabel('Humidity (%)', color='b')
-                ax1.xaxis.set_major_formatter(mdates.DateFormatter("%a %H:%M"))  # ⭐ NEW
-                fig.autofmt_xdate()  # ⭐ NEW
+                ax1.xaxis.set_major_formatter(mdates.DateFormatter("%a %H:%M"))
+                fig.autofmt_xdate()
                 ax1.tick_params(axis='x', rotation=45)
                 fig.tight_layout()
                 st.pyplot(fig)
@@ -546,7 +555,7 @@ if st.session_state.get("plan_ready"):
                 st.warning("⚠️ Forecast data unavailable.")
 
     # Outfit & Color Suggestions
-    st.markdown("### 👗 5‑Day Outfit & Color Suggestions")
+    st.markdown("### 👗 5-Day Outfit & Color Suggestions")
     for i, rec in enumerate(outfit_html_blocks):
         st.markdown(rec, unsafe_allow_html=True)
         if include_daily_tips and i < len(daily_gpt_tips) and daily_gpt_tips[i]:
@@ -578,7 +587,7 @@ if st.session_state.get("plan_ready"):
         with col_dl1:
             key_md = "download_plan_" + (st.session_state.get("inputs_key") or "md")
             st.download_button(
-                "📥 Download 5‑day plan (.md)",
+                "📥 Download 5-day plan (.md)",
                 full_md,
                 file_name="outfit_plan.md",
                 mime="text/markdown",
@@ -588,7 +597,7 @@ if st.session_state.get("plan_ready"):
         with col_dl2:
             key_pdf = "download_pdf_" + (st.session_state.get("inputs_key") or "pdf")
             st.download_button(
-                "📄 Download 5‑day plan (PDF)",
+                "📄 Download 5-day plan (PDF)",
                 pdf_bytes,
                 file_name="outfit_plan.pdf",
                 mime="application/pdf",
@@ -645,8 +654,6 @@ st.markdown("""
   </div>
 </div>
 """, unsafe_allow_html=True)
-
-
 
 
 
